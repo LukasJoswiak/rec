@@ -1,0 +1,18 @@
+# Compiled objects
+*.o
+*.ob
+obj/
+
+# Libraries
+*.a
+
+# Executables
+*.out
+bin/
+
+# Editor files
+*.swp
+*.swo
+
+# Ctags
+tags
