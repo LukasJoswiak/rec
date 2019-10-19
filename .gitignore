@@ -5,6 +5,7 @@ obj/
 
 # Libraries
 *.a
+lib/*
 
 # Executables
 *.out
