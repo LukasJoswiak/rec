@@ -11,7 +11,7 @@ fec_t* fec = NULL;
 int k = 0;
 int m = 0;
 
-void init_zfec(int fec_k, int fec_m) {
+void zfec_init(int fec_k, int fec_m) {
   fec = fec_new(fec_k, fec_m);
   k = fec_k;
   m = fec_m;

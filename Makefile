@@ -30,4 +30,4 @@ bin:
 
 .PHONY: clean
 clean:
-	rm -rf a.out benchmark.o ec_wrapper.o libecwrapper.a bin/
+	rm -rf a.out benchmark.o ec_wrapper.o fec.o libecwrapper.a bin/

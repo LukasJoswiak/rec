@@ -7,7 +7,7 @@
 //
 // @param fec_k number of blocks necessary to reconstruct the original data
 // @param fec_m total number of blocks
-void init_zfec(int fec_k, int fec_m);
+void zfec_init(int fec_k, int fec_m);
 
 // Encodes the given data and stores redundant blocks in output parameter.
 //
@@ -26,6 +26,8 @@ encode(unsigned char* data, int n, unsigned char** outblocks);
 //
 // @param inblocks k blocks used to reconstruct missing primary blocks
 // @param output parameter used to store reconstructed primary blocks
+// @param block nums indicating which blocks are being passed
+// @param block_size size of each block, in bytes
 void
 decode(const unsigned char** inblocks,
     unsigned char** outblocks,
