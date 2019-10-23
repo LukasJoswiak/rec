@@ -18,8 +18,7 @@ void zfec_init(int fec_k, int fec_m);
 //        to the caller to free
 //
 // n should be a multiple of k.
-void
-encode(unsigned char* data, int n, unsigned char** outblocks);
+void encode(unsigned char* data, int n, unsigned char** outblocks);
 
 // Decodes the given input blocks and stores reconstructed blocks in output
 // parameter.
@@ -28,8 +27,7 @@ encode(unsigned char* data, int n, unsigned char** outblocks);
 // @param output parameter used to store reconstructed primary blocks
 // @param block nums indicating which blocks are being passed
 // @param block_size size of each block, in bytes
-void
-decode(const unsigned char** inblocks,
+void decode(const unsigned char** inblocks,
     unsigned char** outblocks,
     unsigned indexes[],
     unsigned int block_size);

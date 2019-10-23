@@ -17,8 +17,7 @@ void zfec_init(int fec_k, int fec_m) {
   m = fec_m;
 }
 
-void
-encode(unsigned char* data, int n, unsigned char** outblocks) {
+void encode(unsigned char* data, int n, unsigned char** outblocks) {
   if (!fec) {
     fprintf(stderr, "Must call init first\n");
     exit(1);
@@ -48,8 +47,7 @@ encode(unsigned char* data, int n, unsigned char** outblocks) {
   fec_encode(fec, blocks, outblocks, block_nums, redundant_blocks, block_size);
 }
 
-void
-decode(const unsigned char** inblocks,
+void decode(const unsigned char** inblocks,
     unsigned char** outblocks,
     unsigned indexes[],
     unsigned int block_size) {

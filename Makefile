@@ -7,8 +7,9 @@ CXXFLAGS = -Wall -g -std=c++11
 
 all: dirs benchmark
 
-benchmark: libecwrapper.a benchmark.o
-	$(CXX) benchmark.o -o bin/$@ -L. -lecwrapper
+benchmark: libecwrapper.a cm256.o gf256.o benchmark.o
+	# Ignore first dependency when linking object files.
+	$(CXX) $(filter-out $<,$^) -o bin/$@ -L. -lecwrapper
 
 benchmark.o: benchmark/benchmark.cc
 	$(CXX) $(CXXFLAGS) -I src/ -c -o benchmark.o $<
@@ -23,6 +24,12 @@ fec.o: lib/zfec/zfec/fec.c
 ec_wrapper.o: src/ec_wrapper.c src/ec_wrapper.h
 	$(CC) $(CFLAGS) -I lib/zfec/zfec/ -c -o $@ $<
 
+cm256.o: lib/cm256/cm256.cpp
+	$(CC) $(CXXFLAGS) -I lib/cm256/ -c -o $@ $<
+
+gf256.o: lib/cm256/gf256.cpp
+	$(CC) $(CXXFLAGS) -I lib/cm256/ -c -o $@ $<
+
 dirs: bin
 
 bin:
@@ -30,4 +37,4 @@ bin:
 
 .PHONY: clean
 clean:
-	rm -rf a.out benchmark.o ec_wrapper.o fec.o libecwrapper.a bin/
+	rm -rf a.out benchmark.o ec_wrapper.o fec.o cm256.o gf256.o libecwrapper.a bin/
