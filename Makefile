@@ -4,37 +4,42 @@ CXX = clang++
 CFLAGS = -Wall -g -std=c11
 CXXFLAGS = -Wall -g -std=c++11
 
+SRCDIR = src
+LIBDIR = lib
+OBJDIR = obj
+BINDIR = bin
+
 
 all: dirs benchmark
 
-benchmark: libecwrapper.a cm256.o gf256.o benchmark.o
+benchmark: $(OBJDIR)/libecwrapper.a $(OBJDIR)/cm256.o $(OBJDIR)/gf256.o $(OBJDIR)/benchmark.o
 	# Ignore first dependency when linking object files.
-	$(CXX) $(filter-out $<,$^) -o bin/$@ -L. -lecwrapper
+	$(CXX) $(filter-out $<,$^) -o bin/$@ -L$(OBJDIR) -lecwrapper
 
-benchmark.o: benchmark/benchmark.cc
-	$(CXX) $(CXXFLAGS) -I src/ -c -o benchmark.o $<
+$(OBJDIR)/benchmark.o: benchmark/benchmark.cc
+	$(CXX) $(CXXFLAGS) -I src/ -c -o $@ $<
 
 # Generate the library archive from the object file.
-libecwrapper.a: fec.o ec_wrapper.o
+$(OBJDIR)/libecwrapper.a: $(OBJDIR)/fec.o $(OBJDIR)/ec_wrapper.o
 	ar rcs $@ $^
 
-fec.o: lib/zfec/zfec/fec.c
+$(OBJDIR)/fec.o: $(LIBDIR)/zfec/zfec/fec.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-ec_wrapper.o: src/ec_wrapper.c src/ec_wrapper.h
-	$(CC) $(CFLAGS) -I lib/zfec/zfec/ -c -o $@ $<
+$(OBJDIR)/ec_wrapper.o: $(SRCDIR)/ec_wrapper.c $(SRCDIR)/ec_wrapper.h
+	$(CC) $(CFLAGS) -I $(LIBDIR)/zfec/zfec/ -c -o $@ $<
 
-cm256.o: lib/cm256/cm256.cpp
-	$(CC) $(CXXFLAGS) -I lib/cm256/ -c -o $@ $<
+$(OBJDIR)/cm256.o: $(LIBDIR)/cm256/cm256.cpp
+	$(CC) $(CXXFLAGS) -I $(LIBDIR)/cm256/ -c -o $@ $<
 
-gf256.o: lib/cm256/gf256.cpp
-	$(CC) $(CXXFLAGS) -I lib/cm256/ -c -o $@ $<
+$(OBJDIR)/gf256.o: $(LIBDIR)/cm256/gf256.cpp
+	$(CC) $(CXXFLAGS) -I $(LIBDIR)/cm256/ -c -o $@ $<
 
-dirs: bin
+dirs: $(OBJDIR) $(BINDIR)
 
-bin:
-	mkdir -p bin/
+$(OBJDIR) $(BINDIR):
+	mkdir -p $@
 
 .PHONY: clean
 clean:
-	rm -rf a.out benchmark.o ec_wrapper.o fec.o cm256.o gf256.o libecwrapper.a bin/
+	rm -rf a.out benchmark.o ec_wrapper.o fec.o cm256.o gf256.o libecwrapper.a $(OBJDIR) $(BINDIR)
