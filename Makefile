@@ -10,11 +10,11 @@ OBJDIR = obj
 BINDIR = bin
 
 
-all: dirs benchmark
+all: dirs $(BINDIR)/benchmark
 
-benchmark: $(OBJDIR)/libecwrapper.a $(OBJDIR)/cm256.o $(OBJDIR)/gf256.o $(OBJDIR)/benchmark.o
+$(BINDIR)/benchmark: $(OBJDIR)/libecwrapper.a $(OBJDIR)/cm256.o $(OBJDIR)/gf256.o $(OBJDIR)/benchmark.o
 	# Ignore first dependency when linking object files.
-	$(CXX) $(filter-out $<,$^) -o bin/$@ -L$(OBJDIR) -lecwrapper
+	$(CXX) $(filter-out $<,$^) -o $@ -L$(OBJDIR) -lecwrapper
 
 $(OBJDIR)/benchmark.o: benchmark/benchmark.cc
 	$(CXX) $(CXXFLAGS) -I src/ -c -o $@ $<
