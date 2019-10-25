@@ -42,4 +42,4 @@ $(OBJDIR) $(BINDIR):
 
 .PHONY: clean
 clean:
-	rm -rf a.out benchmark.o ec_wrapper.o fec.o cm256.o gf256.o libecwrapper.a $(OBJDIR) $(BINDIR)
+	rm -rf $(OBJDIR) $(BINDIR)
