@@ -6,6 +6,8 @@ obj/
 # Libraries
 *.a
 lib/*
+!lib/README.md
+!lib/Makefile
 
 # Executables
 *.out
