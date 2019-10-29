@@ -9,14 +9,24 @@ OBJDIR = obj
 BINDIR = bin
 
 # Default to building the benchmark executable (for now).
-all: dirs client
+all: dirs client replica
 
 client: dirs $(BINDIR)/client
 
+replica: dirs $(BINDIR)/replica
+
+# Client build rules.
 $(BINDIR)/client: $(OBJDIR)/client.o
 	$(CXX) $^ -o $@
 
 $(OBJDIR)/client.o: $(SRCDIR)/client.cc
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+# Replica build rules.
+$(BINDIR)/replica: $(OBJDIR)/replica.o
+	$(CXX) $^ -o $@
+
+$(OBJDIR)/replica.o: $(SRCDIR)/replica.cc
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Build the benchmark suite.
