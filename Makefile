@@ -2,11 +2,15 @@ CC = clang
 CXX = clang++
 
 CFLAGS = -Wall -g -std=c11
-CXXFLAGS = -Wall -g -std=c++11
+CXXFLAGS = -Wall -g -std=c++11 -I include/
 
 SRCDIR = src
 OBJDIR = obj
 BINDIR = bin
+
+# Get a list of object files related to the replica.
+REPLICA_SRC = $(wildcard $(SRCDIR)/server/*.cpp)
+REPLICA_OBJ = $(REPLICA_SRC:$(SRCDIR)/server/%.cpp=$(OBJDIR)/%.o)
 
 # Default to building the benchmark executable (for now).
 all: dirs client replica
@@ -19,14 +23,14 @@ replica: dirs $(BINDIR)/replica
 $(BINDIR)/client: $(OBJDIR)/client.o
 	$(CXX) $^ -o $@
 
-$(OBJDIR)/client.o: $(SRCDIR)/client.cc
+$(OBJDIR)/%.o: $(SRCDIR)/client/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Replica build rules.
-$(BINDIR)/replica: $(OBJDIR)/replica.o
+$(BINDIR)/replica: $(REPLICA_OBJ)
 	$(CXX) $^ -o $@
 
-$(OBJDIR)/replica.o: $(SRCDIR)/replica.cc
+$(OBJDIR)/%.o: $(SRCDIR)/server/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Build the benchmark suite.
