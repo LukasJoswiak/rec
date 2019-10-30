@@ -2,7 +2,7 @@ CC = clang
 CXX = clang++
 
 CFLAGS = -Wall -g -std=c11
-CXXFLAGS = -Wall -g -std=c++11 -I include/
+CXXFLAGS = -Wall -g -MMD -std=c++17 -I include/
 
 SRCDIR = src
 OBJDIR = obj
@@ -29,6 +29,9 @@ $(OBJDIR)/%.o: $(SRCDIR)/client/%.cpp
 # Replica build rules.
 $(BINDIR)/replica: $(REPLICA_OBJ)
 	$(CXX) $^ -o $@
+
+# Rebuild if any depedencies have changed (including header files).
+-include $(REPLICA_OBJ:.o=.d)
 
 $(OBJDIR)/%.o: $(SRCDIR)/server/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
