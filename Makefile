@@ -5,6 +5,7 @@ CFLAGS = -Wall -g -std=c11
 CXXFLAGS = -Wall -g -MMD -std=c++17 -I include/
 
 SRCDIR = src
+LIBDIR = lib
 OBJDIR = obj
 BINDIR = bin
 
@@ -43,13 +44,21 @@ benchmark: | libs dirs
 
 # Download required dependencies.
 libs:
-	$(MAKE) -C lib/
+	$(MAKE) -C $(LIBDIR)
 
 # Create directories for object files and executables.
 dirs: $(OBJDIR) $(BINDIR)
 
 $(OBJDIR) $(BINDIR):
 	mkdir -p $@
+
+.PHONY: cpplint
+cpplint:
+	cpplint $(shell find . -name \*.h?? -or -name \*.cpp | grep -vE "^\.\/$(LIBDIR)\/")
+
+.PHONY: ctags
+ctags:
+	ctags -R --exclude=$(LIBDIR) .
 
 .PHONY: clean
 clean:
