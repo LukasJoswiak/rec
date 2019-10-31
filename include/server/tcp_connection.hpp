@@ -1,5 +1,7 @@
-#ifndef TCP_CONNECTION_HPP_
-#define TCP_CONNECTION_HPP_
+// Copyright 2019 Lukas Joswiak
+
+#ifndef INCLUDE_SERVER_TCP_CONNECTION_HPP_
+#define INCLUDE_SERVER_TCP_CONNECTION_HPP_
 
 #include <memory>
 #include <string>
@@ -18,7 +20,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   void Start();
 
  private:
-  TcpConnection(boost::asio::io_context& io_context);
+  explicit TcpConnection(boost::asio::io_context& io_context);
 
   void HandleWrite(const boost::system::error_code& ec,
                    size_t bytes_transferred);
@@ -27,4 +29,4 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   std::string message_;
 };
 
-#endif  // TCP_CONNECTION_HPP_
+#endif  // INCLUDE_SERVER_TCP_CONNECTION_HPP_

@@ -1,5 +1,7 @@
-#ifndef TCP_SERVER_HPP_
-#define TCP_SERVER_HPP_
+// Copyright 2019 Lukas Joswiak
+
+#ifndef INCLUDE_SERVER_TCP_SERVER_HPP_
+#define INCLUDE_SERVER_TCP_SERVER_HPP_
 
 #include <memory>
 
@@ -9,7 +11,7 @@
 
 class TcpServer {
  public:
-  TcpServer(boost::asio::io_context& io_context);
+  explicit TcpServer(boost::asio::io_context& io_context);
 
  private:
   void StartAccept();
@@ -21,4 +23,4 @@ class TcpServer {
   boost::asio::ip::tcp::acceptor acceptor_;
 };
 
-#endif  // TCP_SERVER_HPP_
+#endif  // INCLUDE_SERVER_TCP_SERVER_HPP_

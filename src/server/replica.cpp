@@ -1,3 +1,5 @@
+// Copyright 2019 Lukas Joswiak
+
 #include <functional>
 #include <iostream>
 

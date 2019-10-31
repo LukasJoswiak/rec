@@ -1,3 +1,5 @@
+// Copyright 2019 Lukas Joswiak
+
 #include "server/tcp_server.hpp"
 
 TcpServer::TcpServer(boost::asio::io_context& io_context)
@@ -17,7 +19,7 @@ void TcpServer::StartAccept() {
 }
 
 void TcpServer::HandleAccept(std::shared_ptr<TcpConnection> new_connection,
-                  const boost::system::error_code& error) {
+                             const boost::system::error_code& error) {
   if (!error) {
     new_connection->Start();
   }

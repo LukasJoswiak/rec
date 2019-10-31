@@ -54,7 +54,7 @@ $(OBJDIR) $(BINDIR):
 
 .PHONY: cpplint
 cpplint:
-	cpplint $(shell find . -name \*.h?? -or -name \*.cpp | grep -vE "^\.\/$(LIBDIR)\/")
+	cpplint --filter=-runtime/references $(shell find . -name \*.h?? -or -name \*.cpp | grep -vE "^\.\/$(LIBDIR)\/")
 
 .PHONY: ctags
 ctags:

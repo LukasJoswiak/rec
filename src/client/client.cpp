@@ -1,3 +1,5 @@
+// Copyright 2019 Lukas Joswiak
+
 #include <array>
 #include <iostream>
 
@@ -14,7 +16,7 @@ int main(int argc, char** argv) {
     boost::asio::ip::tcp::socket socket(io_context);
     boost::asio::connect(socket, endpoints);
 
-    for(;;) {
+    for (;;) {
       std::array<char, 128> buf;
       boost::system::error_code error;
 
