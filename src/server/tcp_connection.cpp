@@ -10,11 +10,16 @@ std::shared_ptr<TcpConnection> TcpConnection::Create(
 }
 
 TcpConnection::TcpConnection(boost::asio::io_context& io_context)
-    : socket_(io_context) {}
+    : socket_(io_context) { }
 
 void TcpConnection::Start() {
-  message_ = "Hello";
-  boost::asio::async_write(socket_, boost::asio::buffer(message_),
+  std::cout << "New client connected" << std::endl;
+
+  Write("hello");
+}
+
+void TcpConnection::Write(const std::string& message) {
+  boost::asio::async_write(socket_, boost::asio::buffer(message),
                            std::bind(&TcpConnection::HandleWrite,
                                      shared_from_this(),
                                      std::placeholders::_1,
