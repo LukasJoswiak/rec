@@ -22,17 +22,25 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   // initial setup to be performed.
   void Start();
 
-  // Delivers the message on the socket provided at instance creation.
-  void Write(const std::string& message);
+  // Asynchronously writes the message to the socket provided at instance
+  // creation.
+  void StartWrite(const std::string& message);
 
  private:
   explicit TcpConnection(boost::asio::io_context& io_context);
+
+  // Asynchronously reads until the end of line character is found.
+  void StartRead();
+
+  // Handler called after a message has been read.
+  void HandleRead(const boost::system::error_code& error, std::size_t n);
 
   // Handler called after a message is written to the socket.
   void HandleWrite(const boost::system::error_code& ec,
                    size_t bytes_transferred);
 
   boost::asio::ip::tcp::socket socket_;
+  std::string input_buffer_;
 };
 
 #endif  // INCLUDE_SERVER_TCP_CONNECTION_HPP_

@@ -11,11 +11,24 @@
 
 class TcpServer {
  public:
-  explicit TcpServer(boost::asio::io_context& io_context);
+  // Initialize a new TcpServer which listens for incoming connections on the
+  // given port.
+  TcpServer(boost::asio::io_context& io_context, uint16_t port);
 
  private:
-  // Creates a socket and begins an asynchronous operation to listen for new
-  // connections.
+  // Initiate a connection asynchronously.
+  void StartConnect(
+      boost::asio::ip::tcp::resolver::results_type endpoints,
+      boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter);
+
+  // Handles the results of an asynchronous connection initiation attempt.
+  void HandleConnect(
+      const boost::system::error_code& error,
+      std::shared_ptr<TcpConnection> connection,
+      boost::asio::ip::tcp::resolver::results_type endpoints,
+      boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter);
+
+  // Listens for new connections.
   void StartAccept();
 
   // Handles newly established connection and instructs server to again listen
@@ -25,6 +38,7 @@ class TcpServer {
 
   boost::asio::io_context& io_context_;
   boost::asio::ip::tcp::acceptor acceptor_;
+  boost::asio::ip::tcp::resolver resolver_;
 };
 
 #endif  // INCLUDE_SERVER_TCP_SERVER_HPP_

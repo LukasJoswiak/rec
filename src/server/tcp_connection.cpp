@@ -13,12 +13,27 @@ TcpConnection::TcpConnection(boost::asio::io_context& io_context)
     : socket_(io_context) { }
 
 void TcpConnection::Start() {
-  std::cout << "New client connected" << std::endl;
-
-  Write("hello");
+  StartRead();
+  StartWrite("hello\n");
 }
 
-void TcpConnection::Write(const std::string& message) {
+void TcpConnection::StartRead() {
+  boost::asio::async_read_until(
+      socket_, boost::asio::dynamic_buffer(input_buffer_), '\n',
+      std::bind(&TcpConnection::HandleRead, shared_from_this(),
+                std::placeholders::_1, std::placeholders::_2));
+}
+
+void TcpConnection::HandleRead(const boost::system::error_code& error,
+                               std::size_t n) {
+  if (!error) {
+    std::cout << "Read line: " << input_buffer_ << std::endl;
+  } else {
+    std::cerr << "Error on receive: " << error.message() << std::endl;
+  }
+}
+
+void TcpConnection::StartWrite(const std::string& message) {
   boost::asio::async_write(socket_, boost::asio::buffer(message),
                            std::bind(&TcpConnection::HandleWrite,
                                      shared_from_this(),
