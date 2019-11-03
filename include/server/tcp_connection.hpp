@@ -8,11 +8,16 @@
 
 #include <boost/asio.hpp>
 
+// Represents a TCP connection with a host.
 class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
  public:
   // Creates and returns a new TcpConnection object using the provided context.
   static std::shared_ptr<TcpConnection> Create(
       boost::asio::io_context& io_context);
+
+  // Disable copy constructor and assignment operator.
+  TcpConnection(const TcpConnection& other) = delete;
+  TcpConnection& operator=(const TcpConnection& other) = delete;
 
   boost::asio::ip::tcp::socket& socket() {
     return socket_;

@@ -30,6 +30,8 @@ void TcpConnection::HandleRead(const boost::system::error_code& error,
     std::cout << "Read line: " << input_buffer_ << std::endl;
   } else {
     std::cerr << "Error on receive: " << error.message() << std::endl;
+
+    StartRead();
   }
 }
 

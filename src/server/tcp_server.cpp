@@ -23,7 +23,8 @@ TcpServer::TcpServer(boost::asio::io_context& io_context, uint16_t port)
   StartAccept();
 }
 
-void TcpServer::StartConnect(boost::asio::ip::tcp::resolver::results_type endpoints,
+void TcpServer::StartConnect(
+    boost::asio::ip::tcp::resolver::results_type endpoints,
     boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter) {
   if (endpoint_iter != endpoints.end()) {
     std::cout << "Connecting to " << endpoint_iter->endpoint() << std::endl;
@@ -52,9 +53,7 @@ void TcpServer::HandleConnect(
     StartConnect(endpoints, ++endpoint_iter);
   } else {
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
-
-    connection->Start();
-    // TODO: store connections as part of server instance
+    connection_manager_.Add(connection);
   }
 }
 

@@ -7,13 +7,17 @@
 
 #include <boost/asio.hpp>
 
+#include "server/connection_manager.hpp"
 #include "server/tcp_connection.hpp"
 
+// TCP server implementation, handling incoming and outgoing connections.
 class TcpServer {
  public:
   // Initialize a new TcpServer which listens for incoming connections on the
   // given port.
   TcpServer(boost::asio::io_context& io_context, uint16_t port);
+  TcpServer(const TcpServer& other) = delete;
+  TcpServer& operator=(const TcpServer& other) = delete;
 
  private:
   // Initiate a connection asynchronously.
@@ -39,6 +43,8 @@ class TcpServer {
   boost::asio::io_context& io_context_;
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ip::tcp::resolver resolver_;
+
+  ConnectionManager connection_manager_;
 };
 
 #endif  // INCLUDE_SERVER_TCP_SERVER_HPP_
