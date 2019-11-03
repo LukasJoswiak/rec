@@ -2,16 +2,22 @@ CC = clang
 CXX = clang++
 
 CFLAGS = -Wall -g -std=c11
-CXXFLAGS = -Wall -g -MMD -std=c++17 -I include/
+CXXFLAGS = -Wall -g -MMD -std=c++17 -I include/ -I build/gen
+LIBS = -lprotobuf
 
 SRCDIR = src
 LIBDIR = lib
-OBJDIR = obj
+BUILDDIR = build
+GENDIR = $(BUILDDIR)/gen
 BINDIR = bin
 
 # Get a list of object files related to the replica.
 REPLICA_SRC = $(wildcard $(SRCDIR)/server/*.cpp)
-REPLICA_OBJ = $(REPLICA_SRC:$(SRCDIR)/server/%.cpp=$(OBJDIR)/%.o)
+REPLICA_OBJ = $(REPLICA_SRC:$(SRCDIR)/server/%.cpp=$(BUILDDIR)/%.o)
+
+PROTO_SRC = $(wildcard $(SRCDIR)/proto/*.proto)
+PROTO_GEN = $(PROTO_SRC:$(SRCDIR)/proto/%.proto=$(GENDIR)/proto/%.pb.cc)
+PROTO_OBJ = $(PROTO_SRC:$(SRCDIR)/proto/%.proto=$(BUILDDIR)/%.o)
 
 # Default to building the benchmark executable (for now).
 all: dirs client replica
@@ -21,20 +27,26 @@ client: dirs $(BINDIR)/client
 replica: dirs $(BINDIR)/replica
 
 # Client build rules.
-$(BINDIR)/client: $(OBJDIR)/client.o
+$(BINDIR)/client: $(BUILDDIR)/client.o
 	$(CXX) $^ -o $@
 
-$(OBJDIR)/%.o: $(SRCDIR)/client/%.cpp
+$(BUILDDIR)/%.o: $(SRCDIR)/client/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Replica build rules.
-$(BINDIR)/replica: $(REPLICA_OBJ)
-	$(CXX) $^ -o $@
+$(BINDIR)/replica: $(PROTO_OBJ) $(REPLICA_OBJ)
+	$(CXX) $^ -o $@ $(LIBS)
+
+$(PROTO_GEN): $(PROTO_SRC)
+	protoc --proto_path=src/ --cpp_out=$(GENDIR) $^
+
+$(PROTO_OBJ): $(PROTO_GEN)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Rebuild if any depedencies have changed (including header files).
 -include $(REPLICA_OBJ:.o=.d)
 
-$(OBJDIR)/%.o: $(SRCDIR)/server/%.cpp
+$(BUILDDIR)/%.o: $(SRCDIR)/server/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Build the benchmark suite.
@@ -47,10 +59,10 @@ libs:
 	$(MAKE) -C $(LIBDIR)
 
 # Create directories for object files and executables.
-dirs: $(OBJDIR) $(BINDIR)
+dirs: $(BUILDDIR) $(BINDIR)
 
-$(OBJDIR) $(BINDIR):
-	mkdir -p $@
+$(BUILDDIR) $(GENDIR) $(BINDIR):
+	mkdir -p $@ $(BUILDDIR) $(GENDIR)
 
 .PHONY: cpplint
 cpplint: ctags
@@ -62,4 +74,4 @@ ctags:
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJDIR) $(BINDIR)
+	rm -rf $(BUILDDIR) $(BINDIR)

@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include "proto/heartbeat.pb.h"
+
 std::shared_ptr<TcpConnection> TcpConnection::Create(
     boost::asio::io_context& io_context) {
   return std::shared_ptr<TcpConnection>(new TcpConnection(io_context));
@@ -14,7 +16,14 @@ TcpConnection::TcpConnection(boost::asio::io_context& io_context)
 
 void TcpConnection::Start() {
   StartRead();
-  StartWrite("hello\n");
+
+  Heartbeat hb;
+  hb.set_server_name("server");
+
+  std::string message;
+  hb.SerializeToString(&message);
+
+  StartWrite(message);
 }
 
 void TcpConnection::StartRead() {
@@ -27,11 +36,14 @@ void TcpConnection::StartRead() {
 void TcpConnection::HandleRead(const boost::system::error_code& error,
                                std::size_t n) {
   if (!error) {
-    std::cout << "Read line: " << input_buffer_ << std::endl;
+    Heartbeat hb;
+    hb.ParseFromString(input_buffer_);
+    std::cout << "Heartbeat server name: " << hb.server_name() << std::endl;
+
+    input_buffer_.clear();
+    StartRead();
   } else {
     std::cerr << "Error on receive: " << error.message() << std::endl;
-
-    StartRead();
   }
 }
 

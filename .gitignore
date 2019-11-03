@@ -1,7 +1,7 @@
 # Compiled objects
 *.o
 *.ob
-obj/
+build/
 
 # Libraries
 *.a
