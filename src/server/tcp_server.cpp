@@ -10,7 +10,9 @@ TcpServer::TcpServer(boost::asio::io_context& io_context, uint16_t port)
     : io_context_(io_context),
       acceptor_(io_context, boost::asio::ip::tcp::endpoint(
           boost::asio::ip::tcp::v4(), port)),
-      resolver_(io_context) {
+      resolver_(io_context),
+      connection_manager_(),
+      handler_(connection_manager_) {
   for (auto server_port : kServerPorts) {
     if (server_port != port) {
       auto endpoints = resolver_.resolve(
@@ -30,7 +32,7 @@ void TcpServer::StartConnect(
     std::cout << "Connecting to " << endpoint_iter->endpoint() << std::endl;
 
     std::shared_ptr<TcpConnection> connection = TcpConnection::Create(
-        io_context_);
+        io_context_, handler_);
     connection->socket().async_connect(endpoint_iter->endpoint(),
                                        std::bind(&TcpServer::HandleConnect,
                                                  this, std::placeholders::_1,
@@ -53,13 +55,15 @@ void TcpServer::HandleConnect(
     StartConnect(endpoints, ++endpoint_iter);
   } else {
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
+    auto re = connection->socket().remote_endpoint().port();
+    std::cout << "remote addr " << re << std::endl;
     connection_manager_.Add(connection);
   }
 }
 
 void TcpServer::StartAccept() {
   std::shared_ptr<TcpConnection> new_connection = TcpConnection::Create(
-      io_context_);
+      io_context_, handler_);
 
   acceptor_.async_accept(new_connection->socket(),
                          std::bind(&TcpServer::HandleAccept, this,

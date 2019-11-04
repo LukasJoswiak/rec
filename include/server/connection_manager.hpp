@@ -6,6 +6,8 @@
 #include <memory>
 #include <set>
 
+#include <google/protobuf/any.pb.h>
+
 #include "server/tcp_connection.hpp"
 
 // Keeps track of open connections.
@@ -15,6 +17,13 @@ class ConnectionManager {
 
   // Adds connection to managed connections; starts connection.
   void Add(std::shared_ptr<TcpConnection> connection);
+
+  // Attempts delivery of the given message to the given endpoint. Endpoint must
+  // be an active connection being tracked by the connection manager.
+  void Deliver(boost::asio::ip::tcp::endpoint to,
+               const google::protobuf::Any& message) {
+    std::cout << "Deliver (implement this function)" << std::endl;
+  }
 
  private:
   std::set<std::shared_ptr<TcpConnection>> connections_;

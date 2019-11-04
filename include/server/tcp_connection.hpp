@@ -8,12 +8,15 @@
 
 #include <boost/asio.hpp>
 
+// Forward declare the Handler class to break the circular dependency.
+class Handler;
+
 // Represents a TCP connection with a host.
 class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
  public:
   // Creates and returns a new TcpConnection object using the provided context.
   static std::shared_ptr<TcpConnection> Create(
-      boost::asio::io_context& io_context);
+      boost::asio::io_context& io_context, Handler& handler);
 
   // Disable copy constructor and assignment operator.
   TcpConnection(const TcpConnection& other) = delete;
@@ -32,7 +35,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   void StartWrite(const std::string& message);
 
  private:
-  explicit TcpConnection(boost::asio::io_context& io_context);
+  explicit TcpConnection(boost::asio::io_context& io_context, Handler& handler);
 
   // Asynchronously reads until the end of line character is found.
   void StartRead();
@@ -46,6 +49,8 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
 
   boost::asio::ip::tcp::socket socket_;
   std::string input_buffer_;
+
+  Handler& handler_;
 };
 
 #endif  // INCLUDE_SERVER_TCP_CONNECTION_HPP_

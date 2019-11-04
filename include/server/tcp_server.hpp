@@ -8,6 +8,7 @@
 #include <boost/asio.hpp>
 
 #include "server/connection_manager.hpp"
+#include "server/handler.hpp"
 #include "server/tcp_connection.hpp"
 
 // TCP server implementation, handling incoming and outgoing connections.
@@ -45,6 +46,7 @@ class TcpServer {
   boost::asio::ip::tcp::resolver resolver_;
 
   ConnectionManager connection_manager_;
+  Handler handler_;
 };
 
 #endif  // INCLUDE_SERVER_TCP_SERVER_HPP_
