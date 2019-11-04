@@ -21,9 +21,7 @@ class ConnectionManager {
   // Attempts delivery of the given message to the given endpoint. Endpoint must
   // be an active connection being tracked by the connection manager.
   void Deliver(boost::asio::ip::tcp::endpoint to,
-               const google::protobuf::Any& message) {
-    std::cout << "Deliver (implement this function)" << std::endl;
-  }
+               const google::protobuf::Any& message);
 
  private:
   std::set<std::shared_ptr<TcpConnection>> connections_;
