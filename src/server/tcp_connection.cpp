@@ -4,11 +4,8 @@
 
 #include <iostream>
 
-#include <google/protobuf/any.pb.h>
-
 // Include the Handler class explicitly to allow symbol lookup to succeed.
 #include "server/handler.hpp"
-#include "proto/heartbeat.pb.h"
 
 std::shared_ptr<TcpConnection> TcpConnection::Create(
     boost::asio::io_context& io_context, Handler& handler) {
@@ -20,18 +17,20 @@ TcpConnection::TcpConnection(
     : socket_(io_context),
       handler_(handler) {}
 
+std::string TcpConnection::LocalEndpoint() {
+  std::string address = socket_.local_endpoint().address().to_string();
+  auto port = socket_.local_endpoint().port();
+  return address + ":" + std::to_string(port);
+}
+
+std::string TcpConnection::RemoteEndpoint() {
+  std::string address = socket_.remote_endpoint().address().to_string();
+  auto port = socket_.remote_endpoint().port();
+  return address + ":" + std::to_string(port);
+}
+
 void TcpConnection::Start() {
   StartRead();
-
-  Heartbeat hb;
-  hb.set_server_name("server");
-  google::protobuf::Any any;
-  any.PackFrom(hb);
-
-  std::string message;
-  any.SerializeToString(&message);
-
-  StartWrite(message);
 }
 
 void TcpConnection::StartRead() {
@@ -44,7 +43,7 @@ void TcpConnection::StartRead() {
 void TcpConnection::HandleRead(const boost::system::error_code& error,
                                std::size_t n) {
   if (!error) {
-    handler_.Handle(input_buffer_, socket_.remote_endpoint());
+    handler_.Handle(input_buffer_, shared_from_this());
 
     input_buffer_.clear();
     StartRead();

@@ -26,6 +26,12 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
     return socket_;
   }
 
+  // Returns a string representation of the local endpoint of the connection.
+  std::string LocalEndpoint();
+
+  // Returns a string representation of the remote endpoint of the connection.
+  std::string RemoteEndpoint();
+
   // Call this method when a new connection has been established, to allow
   // initial setup to be performed.
   void Start();

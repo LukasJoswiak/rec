@@ -5,8 +5,14 @@
 ConnectionManager::ConnectionManager() { }
 
 void ConnectionManager::Add(std::shared_ptr<TcpConnection> connection) {
+  if (connections_.count(connection) != 0) {
+    return;
+  }
+
   connections_.insert(connection);
   connection->Start();
+
+  PrintManagedConnections();
 }
 
 void ConnectionManager::Deliver(boost::asio::ip::tcp::endpoint to,
@@ -17,5 +23,14 @@ void ConnectionManager::Deliver(boost::asio::ip::tcp::endpoint to,
       message.SerializeToString(&serialized);
       connection->StartWrite(serialized);
     }
+  }
+}
+
+void ConnectionManager::PrintManagedConnections() {
+  std::cout << "ConnectionManager (" << connections_.size()
+            << " connections)" << std::endl;
+  for (auto connection : connections_) {
+    std::cout << "  " << connection->socket().local_endpoint() << " -> "
+              << connection->socket().remote_endpoint() << std::endl;
   }
 }

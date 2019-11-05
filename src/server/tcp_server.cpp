@@ -4,7 +4,9 @@
 
 #include <iostream>
 
-const std::array<uint16_t, 2> kServerPorts = {1111, 1112};
+#include <google/protobuf/any.pb.h>
+
+const std::array<uint16_t, 3> kServerPorts = {1111, 1112, 1113};
 
 TcpServer::TcpServer(boost::asio::io_context& io_context, uint16_t port)
     : io_context_(io_context),
@@ -55,9 +57,14 @@ void TcpServer::HandleConnect(
     StartConnect(endpoints, ++endpoint_iter);
   } else {
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
-    auto re = connection->socket().remote_endpoint().port();
-    std::cout << "remote addr " << re << std::endl;
     connection_manager_.Add(connection);
+
+    Heartbeat hb;
+    hb.set_server_name(connection->LocalEndpoint());
+
+    google::protobuf::Any any;
+    any.PackFrom(hb);
+    connection_manager_.Deliver(connection->socket().remote_endpoint(), any);
   }
 }
 
