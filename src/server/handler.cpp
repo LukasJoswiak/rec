@@ -32,5 +32,6 @@ void Handler::HandleHeartbeat(
   any2.PackFrom(hb2);
   connection_manager_.Deliver(from, any2);
   */
+  connection->set_endpoint_name(hb.server_name());
   connection_manager_.Add(connection);
 }

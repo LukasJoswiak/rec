@@ -8,26 +8,18 @@
 #include "server/handler.hpp"
 
 std::shared_ptr<TcpConnection> TcpConnection::Create(
-    boost::asio::io_context& io_context, Handler& handler) {
-  return std::shared_ptr<TcpConnection>(new TcpConnection(io_context, handler));
+    boost::asio::io_context& io_context, std::string endpoint_name,
+    Handler& handler) {
+  return std::shared_ptr<TcpConnection>(new TcpConnection(
+        io_context, endpoint_name, handler));
 }
 
 TcpConnection::TcpConnection(
-    boost::asio::io_context& io_context, Handler& handler)
+    boost::asio::io_context& io_context, std::string endpoint_name,
+    Handler& handler)
     : socket_(io_context),
+      endpoint_name_(endpoint_name),
       handler_(handler) {}
-
-std::string TcpConnection::LocalEndpoint() {
-  std::string address = socket_.local_endpoint().address().to_string();
-  auto port = socket_.local_endpoint().port();
-  return address + ":" + std::to_string(port);
-}
-
-std::string TcpConnection::RemoteEndpoint() {
-  std::string address = socket_.remote_endpoint().address().to_string();
-  auto port = socket_.remote_endpoint().port();
-  return address + ":" + std::to_string(port);
-}
 
 void TcpConnection::Start() {
   StartRead();

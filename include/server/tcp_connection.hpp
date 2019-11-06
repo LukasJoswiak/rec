@@ -16,21 +16,12 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
  public:
   // Creates and returns a new TcpConnection object using the provided context.
   static std::shared_ptr<TcpConnection> Create(
-      boost::asio::io_context& io_context, Handler& handler);
+      boost::asio::io_context& io_context, std::string endpoint_name,
+      Handler& handler);
 
   // Disable copy constructor and assignment operator.
   TcpConnection(const TcpConnection& other) = delete;
   TcpConnection& operator=(const TcpConnection& other) = delete;
-
-  boost::asio::ip::tcp::socket& socket() {
-    return socket_;
-  }
-
-  // Returns a string representation of the local endpoint of the connection.
-  std::string LocalEndpoint();
-
-  // Returns a string representation of the remote endpoint of the connection.
-  std::string RemoteEndpoint();
 
   // Call this method when a new connection has been established, to allow
   // initial setup to be performed.
@@ -40,8 +31,22 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   // creation.
   void StartWrite(const std::string& message);
 
+  boost::asio::ip::tcp::socket& socket() {
+    return socket_;
+  }
+
+  // Returns the name of the remote endpoint.
+  std::string endpoint_name() {
+    return endpoint_name_;
+  }
+
+  void set_endpoint_name(std::string endpoint_name) {
+    endpoint_name_ = endpoint_name;
+  }
+
  private:
-  explicit TcpConnection(boost::asio::io_context& io_context, Handler& handler);
+  explicit TcpConnection(boost::asio::io_context& io_context, std::string endpoint_name,
+                         Handler& handler);
 
   // Asynchronously reads until the end of line character is found.
   void StartRead();
@@ -54,6 +59,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
                    size_t bytes_transferred);
 
   boost::asio::ip::tcp::socket socket_;
+  std::string endpoint_name_;
   std::string input_buffer_;
 
   Handler& handler_;

@@ -30,7 +30,6 @@ void ConnectionManager::PrintManagedConnections() {
   std::cout << "ConnectionManager (" << connections_.size()
             << " connections)" << std::endl;
   for (auto connection : connections_) {
-    std::cout << "  " << connection->socket().local_endpoint() << " -> "
-              << connection->socket().remote_endpoint() << std::endl;
+    std::cout << "  localhost -> " << connection->endpoint_name() << std::endl;
   }
 }

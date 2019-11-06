@@ -16,7 +16,8 @@ class TcpServer {
  public:
   // Initialize a new TcpServer which listens for incoming connections on the
   // given port.
-  TcpServer(boost::asio::io_context& io_context, uint16_t port);
+  TcpServer(boost::asio::io_context& io_context, std::string name,
+            uint16_t port);
   TcpServer(const TcpServer& other) = delete;
   TcpServer& operator=(const TcpServer& other) = delete;
 
@@ -24,14 +25,16 @@ class TcpServer {
   // Initiate a connection asynchronously.
   void StartConnect(
       boost::asio::ip::tcp::resolver::results_type endpoints,
-      boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter);
+      boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter,
+      std::string& endpoint_name);
 
   // Handles the results of an asynchronous connection initiation attempt.
   void HandleConnect(
       const boost::system::error_code& error,
       std::shared_ptr<TcpConnection> connection,
       boost::asio::ip::tcp::resolver::results_type endpoints,
-      boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter);
+      boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter,
+      std::string& endpoint_name);
 
   // Listens for new connections.
   void StartAccept();
@@ -45,6 +48,7 @@ class TcpServer {
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ip::tcp::resolver resolver_;
 
+  std::string name_;
   ConnectionManager connection_manager_;
   Handler handler_;
 };

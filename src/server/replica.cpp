@@ -8,7 +8,7 @@
 int main(int argc, char** argv) {
   try {
     boost::asio::io_context io_context;
-    TcpServer server(io_context, std::stoi(argv[1]));
+    TcpServer server(io_context, argv[1], std::stoi(argv[2]));
 
     io_context.run();
   } catch (std::exception& e) {
