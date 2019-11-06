@@ -15,10 +15,10 @@ void ConnectionManager::Add(std::shared_ptr<TcpConnection> connection) {
   PrintManagedConnections();
 }
 
-void ConnectionManager::Deliver(boost::asio::ip::tcp::endpoint to,
-                                const google::protobuf::Any& message) {
+void ConnectionManager::Deliver(const std::string& endpoint,
+                                const google::protobuf::Any& message) const {
   for (auto connection : connections_) {
-    if (connection->socket().remote_endpoint() == to) {
+    if (connection->endpoint_name() == endpoint) {
       std::string serialized;
       message.SerializeToString(&serialized);
       connection->StartWrite(serialized);

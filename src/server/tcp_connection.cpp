@@ -54,5 +54,4 @@ void TcpConnection::StartWrite(const std::string& message) {
 
 void TcpConnection::HandleWrite(const boost::system::error_code& ec,
                                 size_t bytes_transferred) {
-  std::cout << "Wrote " << bytes_transferred << " bytes" << std::endl;
 }

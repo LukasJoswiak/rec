@@ -71,7 +71,7 @@ void TcpServer::HandleConnect(
 
     google::protobuf::Any any;
     any.PackFrom(hb);
-    connection_manager_.Deliver(connection->socket().remote_endpoint(), any);
+    connection_manager_.Deliver(endpoint_name, any);
   }
 }
 

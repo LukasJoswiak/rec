@@ -18,12 +18,10 @@ class ConnectionManager {
   // Adds connection to managed connections; starts connection.
   void Add(std::shared_ptr<TcpConnection> connection);
 
-  // TODO: I think we should move to using names for servers, instead of
-  // distinguishing them by their IP/port combo.
-  // Attempts delivery of the given message to the given endpoint. Endpoint must
-  // be an active connection being tracked by the connection manager.
-  void Deliver(boost::asio::ip::tcp::endpoint to,
-               const google::protobuf::Any& message);
+  // Attempts delivery of the message to the given endpoint. Endpoint must be an
+  // active connection tracked by the connection manager.
+  void Deliver(const std::string& endpoint,
+               const google::protobuf::Any& message) const;
 
   // Debug function used to print the connections being managed.
   void PrintManagedConnections();
