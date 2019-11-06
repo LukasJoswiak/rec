@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <set>
+#include <string>
 
 #include <google/protobuf/any.pb.h>
 

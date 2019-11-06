@@ -7,7 +7,8 @@
 #include <google/protobuf/any.pb.h>
 
 const std::array<uint16_t, 3> kServerPorts = {1111, 1112, 1113};
-const std::array<std::string, 3> kServerNames = {"server1", "server2", "server3"};
+const std::array<std::string, 3> kServerNames =
+    {"server1", "server2", "server3"};
 
 TcpServer::TcpServer(
     boost::asio::io_context& io_context, std::string name, uint16_t port)

@@ -45,8 +45,8 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   }
 
  private:
-  explicit TcpConnection(boost::asio::io_context& io_context, std::string endpoint_name,
-                         Handler& handler);
+  explicit TcpConnection(boost::asio::io_context& io_context,
+                         std::string endpoint_name, Handler& handler);
 
   // Asynchronously reads until the end of line character is found.
   void StartRead();

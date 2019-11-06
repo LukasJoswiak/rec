@@ -4,6 +4,7 @@
 #define INCLUDE_SERVER_TCP_SERVER_HPP_
 
 #include <memory>
+#include <string>
 
 #include <boost/asio.hpp>
 
