@@ -11,6 +11,9 @@ BUILDDIR = build
 GENDIR = $(BUILDDIR)/gen
 BINDIR = bin
 
+CLIENT_SRC = $(wildcard $(SRCDIR)/client/*.cpp)
+CLIENT_OBJ = $(CLIENT_SRC:$(SRCDIR)/client/%.cpp=$(BUILDDIR)/%.o)
+
 # Get a list of object files related to the replica.
 REPLICA_SRC = $(wildcard $(SRCDIR)/server/*.cpp)
 REPLICA_OBJ = $(REPLICA_SRC:$(SRCDIR)/server/%.cpp=$(BUILDDIR)/%.o)
@@ -27,8 +30,10 @@ client: dirs $(BINDIR)/client
 replica: dirs $(BINDIR)/replica
 
 # Client build rules.
-$(BINDIR)/client: $(BUILDDIR)/client.o
+$(BINDIR)/client: $(CLIENT_OBJ)
 	$(CXX) $^ -o $@
+
+-include $(CLIENT_OBJ:.o=.d)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/client/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

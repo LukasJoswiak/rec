@@ -5,13 +5,15 @@
 
 #include <boost/asio.hpp>
 
+#include "client/tcp_client.hpp"
+
 int main(int argc, char** argv) {
   try {
     boost::asio::io_context io_context;
 
     boost::asio::ip::tcp::resolver resolver(io_context);
     boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(
-        argv[1], "12345");
+        argv[1], "1111");
 
     boost::asio::ip::tcp::socket socket(io_context);
     boost::asio::connect(socket, endpoints);

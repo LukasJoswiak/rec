@@ -11,7 +11,7 @@ const std::array<std::string, 3> kServerNames =
     {"server1", "server2", "server3"};
 
 TcpServer::TcpServer(
-    boost::asio::io_context& io_context, std::string name, uint16_t port)
+    boost::asio::io_context& io_context, std::string&& name, uint16_t port)
     : io_context_(io_context),
       acceptor_(io_context, boost::asio::ip::tcp::endpoint(
           boost::asio::ip::tcp::v4(), port)),

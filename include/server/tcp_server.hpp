@@ -17,7 +17,7 @@ class TcpServer {
  public:
   // Initialize a new TcpServer which listens for incoming connections on the
   // given port.
-  TcpServer(boost::asio::io_context& io_context, std::string name,
+  TcpServer(boost::asio::io_context& io_context, std::string&& name,
             uint16_t port);
   TcpServer(const TcpServer& other) = delete;
   TcpServer& operator=(const TcpServer& other) = delete;
