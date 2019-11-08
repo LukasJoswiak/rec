@@ -19,6 +19,9 @@ class ConnectionManager {
   // Adds connection to managed connections; starts connection.
   void Add(std::shared_ptr<TcpConnection> connection);
 
+  // Removes connection from managed connections.
+  void Remove(std::shared_ptr<TcpConnection> connection);
+
   // Attempts delivery of the message to the given endpoint. Endpoint must be an
   // active connection tracked by the connection manager.
   void Deliver(const std::string& endpoint,

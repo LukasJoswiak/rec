@@ -25,3 +25,7 @@ void Handler::HandleHeartbeat(
   connection->set_endpoint_name(hb.server_name());
   connection_manager_.Add(connection);
 }
+
+void Handler::Disconnect(std::shared_ptr<TcpConnection> connection) {
+  connection_manager_.Remove(connection);
+}

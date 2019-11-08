@@ -15,6 +15,16 @@ void ConnectionManager::Add(std::shared_ptr<TcpConnection> connection) {
   PrintManagedConnections();
 }
 
+void ConnectionManager::Remove(std::shared_ptr<TcpConnection> connection) {
+  auto it = connections_.find(connection);
+  if (it == connections_.end()) {
+    return;
+  }
+  connections_.erase(it);
+
+  PrintManagedConnections();
+}
+
 void ConnectionManager::Deliver(const std::string& endpoint,
                                 const google::protobuf::Any& message) const {
   for (auto connection : connections_) {

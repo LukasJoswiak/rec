@@ -21,6 +21,12 @@ TcpConnection::TcpConnection(
       endpoint_name_(endpoint_name),
       handler_(handler) {}
 
+TcpConnection::~TcpConnection() {
+  std::cout << "~TcpConnection" << std::endl;
+  boost::system::error_code error;
+  socket_.close(error);
+}
+
 void TcpConnection::Start() {
   StartRead();
 }
@@ -41,6 +47,8 @@ void TcpConnection::HandleRead(const boost::system::error_code& error,
     StartRead();
   } else {
     std::cerr << "Error on receive: " << error.message() << std::endl;
+
+    handler_.Disconnect(shared_from_this());
   }
 }
 

@@ -23,6 +23,9 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   TcpConnection(const TcpConnection& other) = delete;
   TcpConnection& operator=(const TcpConnection& other) = delete;
 
+  // Shuts the connection down on destruction.
+  ~TcpConnection();
+
   // Call this method when a new connection has been established, to allow
   // initial setup to be performed.
   void Start();

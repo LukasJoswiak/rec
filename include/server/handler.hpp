@@ -23,6 +23,9 @@ class Handler {
   void Handle(const std::string& message,
               std::shared_ptr<TcpConnection> connection);
 
+  // Signals a connection has been closed and should stop being tracked.
+  void Disconnect(std::shared_ptr<TcpConnection> connection);
+
  private:
   void HandleHeartbeat(Heartbeat& hb,
                        std::shared_ptr<TcpConnection> connection);
