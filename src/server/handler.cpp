@@ -11,6 +11,7 @@ Handler::Handler(ConnectionManager& connection_manager)
 
 void Handler::Handle(const std::string& message,
                      std::shared_ptr<TcpConnection> connection) {
+  std::cout << "Handle read: " << message << std::endl;
   google::protobuf::Any any;
   any.ParseFromString(message);
 

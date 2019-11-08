@@ -16,6 +16,9 @@ class TcpClient {
   // Closes the connection.
   void Stop();
 
+  // Starts an asynchronous write of message on the socket.
+  void StartWrite(const std::string& message);
+
  private:
   // Attempts to connect to the endpoint.
   void StartConnect(
@@ -30,9 +33,12 @@ class TcpClient {
   // newline character is read.
   void StartRead();
 
-  // Handler called after a message is written to the socket.
+  // Handler called after a message is read from the socket.
   void HandleRead(const boost::system::error_code& error,
                   std::size_t bytes_transferred);
+
+  // Handler called after a message is written to the socket.
+  void HandleWrite(const boost::system::error_code& error);
 
   boost::asio::ip::tcp::socket socket_;
   boost::asio::ip::tcp::resolver::results_type endpoints_;

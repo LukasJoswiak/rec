@@ -42,6 +42,7 @@ void TcpClient::HandleConnect(
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
 
     StartRead();
+    StartWrite("test write from client\n");
   }
 }
 
@@ -62,6 +63,19 @@ void TcpClient::HandleRead(const boost::system::error_code& error,
     StartRead();
   } else {
     std::cerr << "Receive error: " << error.message() << std::endl;
+    Stop();
+  }
+}
+
+void TcpClient::StartWrite(const std::string& message) {
+  boost::asio::async_write(
+      socket_, boost::asio::buffer(message, message.size()),
+      std::bind(&TcpClient::HandleWrite, this, std::placeholders::_1));
+
+}
+
+void TcpClient::HandleWrite(const boost::system::error_code& error) {
+  if (error) {
     Stop();
   }
 }
