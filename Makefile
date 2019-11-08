@@ -3,7 +3,7 @@ CXX = clang++
 
 CFLAGS = -Wall -g -std=c11
 CXXFLAGS = -Wall -g -MMD -std=c++17 -I include/ -I build/gen
-LIBS = -lprotobuf
+LIBS = -pthread -lprotobuf
 
 SRCDIR = src
 LIBDIR = lib
@@ -31,7 +31,7 @@ replica: dirs $(BINDIR)/replica
 
 # Client build rules.
 $(BINDIR)/client: $(CLIENT_OBJ)
-	$(CXX) $^ -o $@
+	$(CXX) $^ -o $@ $(LIBS)
 
 -include $(CLIENT_OBJ:.o=.d)
 
