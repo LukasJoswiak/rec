@@ -26,8 +26,17 @@ class TcpClient {
       const boost::system::error_code& error,
       boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter);
 
+  // Starts an asynchronous read operation to read from the socket until a
+  // newline character is read.
+  void StartRead();
+
+  // Handler called after a message is written to the socket.
+  void HandleRead(const boost::system::error_code& error,
+                  std::size_t bytes_transferred);
+
   boost::asio::ip::tcp::socket socket_;
   boost::asio::ip::tcp::resolver::results_type endpoints_;
+  std::string input_buffer_;
 };
 
 #endif  // INCLUDE_CLIENT_TCP_CLIENT_HPP_

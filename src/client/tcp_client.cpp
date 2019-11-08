@@ -40,6 +40,28 @@ void TcpClient::HandleConnect(
     StartConnect(++endpoint_iter);
   } else {
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
+
+    StartRead();
   }
 }
 
+void TcpClient::StartRead() {
+  boost::asio::async_read_until(socket_,
+                                boost::asio::dynamic_buffer(input_buffer_),
+                                '\n', std::bind(&TcpClient::HandleRead, this,
+                                                std::placeholders::_1,
+                                                std::placeholders::_2));
+}
+
+void TcpClient::HandleRead(const boost::system::error_code& error,
+                           std::size_t bytes_transferred) {
+  if (!error) {
+    std::cout << "Received line: " << input_buffer_ << std::endl;
+    input_buffer_.erase();
+
+    StartRead();
+  } else {
+    std::cerr << "Receive error: " << error.message() << std::endl;
+    Stop();
+  }
+}

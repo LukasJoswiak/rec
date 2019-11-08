@@ -78,7 +78,7 @@ void TcpServer::HandleConnect(
 
 void TcpServer::StartAccept() {
   std::shared_ptr<TcpConnection> new_connection = TcpConnection::Create(
-      io_context_, "", handler_);
+      io_context_, "client", handler_);
 
   acceptor_.async_accept(new_connection->socket(),
                          std::bind(&TcpServer::HandleAccept, this,
@@ -89,6 +89,9 @@ void TcpServer::HandleAccept(std::shared_ptr<TcpConnection> new_connection,
                              const boost::system::error_code& error) {
   if (!error) {
     new_connection->Start();
+    connection_manager_.Add(new_connection);
+
+    new_connection->StartWrite("hello\n");
   }
 
   StartAccept();

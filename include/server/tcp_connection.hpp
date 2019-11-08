@@ -55,7 +55,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   void HandleRead(const boost::system::error_code& error, std::size_t n);
 
   // Handler called after a message is written to the socket.
-  void HandleWrite(const boost::system::error_code& ec,
+  void HandleWrite(const boost::system::error_code& error,
                    size_t bytes_transferred);
 
   boost::asio::ip::tcp::socket socket_;

@@ -52,6 +52,6 @@ void TcpConnection::StartWrite(const std::string& message) {
                                      std::placeholders::_2));
 }
 
-void TcpConnection::HandleWrite(const boost::system::error_code& ec,
+void TcpConnection::HandleWrite(const boost::system::error_code& error,
                                 size_t bytes_transferred) {
 }
