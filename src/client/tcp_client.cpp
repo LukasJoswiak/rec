@@ -4,6 +4,10 @@
 
 #include <iostream>
 
+#include <google/protobuf/any.pb.h>
+
+#include "proto/request.pb.h"
+
 TcpClient::TcpClient(boost::asio::io_context& io_context)
     : socket_(io_context) {}
 
@@ -41,8 +45,18 @@ void TcpClient::HandleConnect(
   } else {
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
 
+    Request r;
+    r.set_key("simple_key");
+    r.set_value("sample value");
+
+    google::protobuf::Any any;
+    any.PackFrom(r);
+
+    std::string serialized;
+    any.SerializeToString(&serialized);
+
     StartRead();
-    StartWrite("test write from client\n");
+    StartWrite(serialized);
   }
 }
 

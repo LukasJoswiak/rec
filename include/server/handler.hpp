@@ -9,6 +9,7 @@
 #include <boost/asio.hpp>
 
 #include "proto/heartbeat.pb.h"
+#include "proto/request.pb.h"
 #include "server/connection_manager.hpp"
 
 // Message handler for messages received on the replica.
@@ -28,6 +29,9 @@ class Handler {
 
  private:
   void HandleHeartbeat(Heartbeat& hb,
+                       std::shared_ptr<TcpConnection> connection);
+
+  void HandleRequest(Request& hb,
                        std::shared_ptr<TcpConnection> connection);
 
   // Reference to the connection manager, used to queue messages for delivery.

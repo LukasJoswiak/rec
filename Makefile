@@ -30,7 +30,7 @@ client: dirs $(BINDIR)/client
 replica: dirs $(BINDIR)/replica
 
 # Client build rules.
-$(BINDIR)/client: $(CLIENT_OBJ)
+$(BINDIR)/client: $(PROTO_OBJ) $(CLIENT_OBJ)
 	$(CXX) $^ -o $@ $(LIBS)
 
 -include $(CLIENT_OBJ:.o=.d)
@@ -42,16 +42,17 @@ $(BUILDDIR)/%.o: $(SRCDIR)/client/%.cpp
 $(BINDIR)/replica: $(PROTO_OBJ) $(REPLICA_OBJ)
 	$(CXX) $^ -o $@ $(LIBS)
 
-$(PROTO_GEN): $(PROTO_SRC)
-	protoc --proto_path=src/ --cpp_out=$(GENDIR) $^
-
-$(PROTO_OBJ): $(PROTO_GEN)
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
 # Rebuild if any depedencies have changed (including header files).
 -include $(REPLICA_OBJ:.o=.d)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/server/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+# Protobuf build rules.
+$(PROTO_GEN): $(PROTO_SRC)
+	protoc --proto_path=src/ --cpp_out=$(GENDIR) $^
+
+$(BUILDDIR)/%.o: $(GENDIR)/proto/%.pb.cc
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Build the benchmark suite.
