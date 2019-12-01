@@ -27,12 +27,20 @@ void ConnectionManager::Remove(std::shared_ptr<TcpConnection> connection) {
 
 void ConnectionManager::Deliver(const std::string& endpoint,
                                 const google::protobuf::Any& message) const {
+  std::string serialized;
+  message.SerializeToString(&serialized);
   for (auto connection : connections_) {
     if (connection->endpoint_name() == endpoint) {
-      std::string serialized;
-      message.SerializeToString(&serialized);
       connection->StartWrite(serialized);
     }
+  }
+}
+
+void ConnectionManager::Broadcast(const google::protobuf::Any& message) const {
+  std::string serialized;
+  message.SerializeToString(&serialized);
+  for (auto connection : connections_) {
+    connection->StartWrite(serialized);
   }
 }
 

@@ -27,6 +27,9 @@ class ConnectionManager {
   void Deliver(const std::string& endpoint,
                const google::protobuf::Any& message) const;
 
+  // Attempts delivery of the message to all known endpoints.
+  void Broadcast(const google::protobuf::Any& message) const;
+
   // Debug function used to print the connections being managed.
   void PrintManagedConnections();
 
