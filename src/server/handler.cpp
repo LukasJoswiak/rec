@@ -1,8 +1,8 @@
 // Copyright 2019 Lukas Joswiak
 
-#include <memory>
-
 #include "server/handler.hpp"
+
+#include <memory>
 
 #include <google/protobuf/any.pb.h>
 

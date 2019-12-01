@@ -18,6 +18,9 @@ CLIENT_OBJ = $(CLIENT_SRC:$(SRCDIR)/client/%.cpp=$(BUILDDIR)/%.o)
 REPLICA_SRC = $(wildcard $(SRCDIR)/server/*.cpp)
 REPLICA_OBJ = $(REPLICA_SRC:$(SRCDIR)/server/%.cpp=$(BUILDDIR)/%.o)
 
+PAXOS_SRC = $(wildcard $(SRCDIR)/paxos/*.cpp)
+PAXOS_OBJ = $(PAXOS_SRC:$(SRCDIR)/paxos/%.cpp=$(BUILDDIR)/%.o)
+
 PROTO_SRC = $(wildcard $(SRCDIR)/proto/*.proto)
 PROTO_GEN = $(PROTO_SRC:$(SRCDIR)/proto/%.proto=$(GENDIR)/proto/%.pb.cc)
 PROTO_OBJ = $(PROTO_SRC:$(SRCDIR)/proto/%.proto=$(BUILDDIR)/%.o)
@@ -39,13 +42,18 @@ $(BUILDDIR)/%.o: $(SRCDIR)/client/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Replica build rules.
-$(BINDIR)/replica: $(PROTO_OBJ) $(REPLICA_OBJ)
+$(BINDIR)/replica: $(PROTO_OBJ) $(PAXOS_OBJ) $(REPLICA_OBJ)
 	$(CXX) $^ -o $@ $(LIBS)
 
 # Rebuild if any depedencies have changed (including header files).
 -include $(REPLICA_OBJ:.o=.d)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/server/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+# Paxos build rules.
+
+$(BUILDDIR)/%.o: $(SRCDIR)/paxos/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Protobuf build rules.
