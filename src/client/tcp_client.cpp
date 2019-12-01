@@ -6,7 +6,7 @@
 
 #include <google/protobuf/any.pb.h>
 
-#include "proto/request.pb.h"
+#include "proto/messages.pb.h"
 
 TcpClient::TcpClient(boost::asio::io_context& io_context)
     : socket_(io_context) {}

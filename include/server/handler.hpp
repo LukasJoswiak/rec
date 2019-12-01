@@ -9,7 +9,7 @@
 #include <boost/asio.hpp>
 
 #include "proto/heartbeat.pb.h"
-#include "proto/request.pb.h"
+#include "proto/messages.pb.h"
 #include "server/connection_manager.hpp"
 
 // Message handler for messages received on the replica.

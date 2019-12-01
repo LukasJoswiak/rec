@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+message Request {
+  string key = 1;
+  string value = 2;
+}
+
+message PValue {
+  int64 ballot_number = 1;
+  int64 slot_number = 2;
+  Request command = 3;
+}
+
+message P1A {
+  int64 ballot_number = 1;
+}
+
+message P1B {
+  int64 ballot_number = 1;
+  repeated PValue accepted = 2;
+}
+
+message P2A {
+  PValue pvalue = 1;
+}
+
+message P2B {
+  int64 ballot_number = 1;
+  int64 slot_number = 2;
+}
