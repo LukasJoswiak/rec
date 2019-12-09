@@ -15,8 +15,8 @@ CLIENT_SRC = $(wildcard $(SRCDIR)/client/*.cpp)
 CLIENT_OBJ = $(CLIENT_SRC:$(SRCDIR)/client/%.cpp=$(BUILDDIR)/%.o)
 
 # Get a list of object files related to the replica.
-REPLICA_SRC = $(wildcard $(SRCDIR)/server/*.cpp)
-REPLICA_OBJ = $(REPLICA_SRC:$(SRCDIR)/server/%.cpp=$(BUILDDIR)/%.o)
+REC_SRC = $(wildcard $(SRCDIR)/server/*.cpp)
+REC_OBJ = $(REC_SRC:$(SRCDIR)/server/%.cpp=$(BUILDDIR)/%.o)
 
 PAXOS_SRC = $(wildcard $(SRCDIR)/paxos/*.cpp)
 PAXOS_OBJ = $(PAXOS_SRC:$(SRCDIR)/paxos/%.cpp=$(BUILDDIR)/%.o)
@@ -26,11 +26,11 @@ PROTO_GEN = $(PROTO_SRC:$(SRCDIR)/proto/%.proto=$(GENDIR)/proto/%.pb.cc)
 PROTO_OBJ = $(PROTO_SRC:$(SRCDIR)/proto/%.proto=$(BUILDDIR)/%.o)
 
 # Default to building the benchmark executable (for now).
-all: dirs client replica
+all: dirs client rec
 
 client: dirs $(BINDIR)/client
 
-replica: dirs $(BINDIR)/replica
+rec: dirs $(BINDIR)/rec
 
 # Client build rules.
 $(BINDIR)/client: $(PROTO_OBJ) $(CLIENT_OBJ)
@@ -41,12 +41,13 @@ $(BINDIR)/client: $(PROTO_OBJ) $(CLIENT_OBJ)
 $(BUILDDIR)/%.o: $(SRCDIR)/client/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-# Replica build rules.
-$(BINDIR)/replica: $(PROTO_OBJ) $(PAXOS_OBJ) $(REPLICA_OBJ)
+# Replica (rec) build rules.
+$(BINDIR)/rec: $(PROTO_OBJ) $(PAXOS_OBJ) $(REC_OBJ)
+	echo $(PAXOS_OBJ)
 	$(CXX) $^ -o $@ $(LIBS)
 
 # Rebuild if any depedencies have changed (including header files).
--include $(REPLICA_OBJ:.o=.d)
+-include $(REC_OBJ:.o=.d)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/server/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

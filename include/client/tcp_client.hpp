@@ -3,6 +3,8 @@
 #ifndef INCLUDE_CLIENT_TCP_CLIENT_HPP_
 #define INCLUDE_CLIENT_TCP_CLIENT_HPP_
 
+#include <string>
+
 #include <boost/asio.hpp>
 
 class TcpClient {

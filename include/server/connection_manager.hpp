@@ -3,12 +3,11 @@
 #ifndef INCLUDE_SERVER_CONNECTION_MANAGER_HPP_
 #define INCLUDE_SERVER_CONNECTION_MANAGER_HPP_
 
+#include <google/protobuf/any.pb.h>
+
 #include <memory>
 #include <set>
 #include <string>
-
-#include <google/protobuf/any.pb.h>
-
 #include "server/tcp_connection.hpp"
 
 // Keeps track of open connections.

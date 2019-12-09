@@ -2,9 +2,12 @@
 
 #include "server/tcp_server.hpp"
 
-#include <iostream>
-
 #include <google/protobuf/any.pb.h>
+
+#include <iostream>
+#include <thread>
+
+#include "paxos/replica.hpp"
 
 const std::array<uint16_t, 3> kServerPorts = {1111, 1112, 1113};
 const std::array<std::string, 3> kServerNames =
@@ -19,6 +22,11 @@ TcpServer::TcpServer(
       name_(name),
       connection_manager_(),
       handler_(connection_manager_) {
+  // Spawn Paxos handlers.
+  paxos::Replica replica;
+  std::thread rt(&paxos::Replica::Run, &replica);
+  rt.detach();
+
   for (int i = 0; i < kServerPorts.size(); ++i) {
     auto server_port = kServerPorts.at(i);
     auto server_name = kServerNames.at(i);

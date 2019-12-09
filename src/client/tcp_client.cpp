@@ -2,9 +2,9 @@
 
 #include "client/tcp_client.hpp"
 
-#include <iostream>
-
 #include <google/protobuf/any.pb.h>
+
+#include <iostream>
 
 #include "proto/messages.pb.h"
 
@@ -85,7 +85,6 @@ void TcpClient::StartWrite(const std::string& message) {
   boost::asio::async_write(
       socket_, boost::asio::buffer(message, message.size()),
       std::bind(&TcpClient::HandleWrite, this, std::placeholders::_1));
-
 }
 
 void TcpClient::HandleWrite(const boost::system::error_code& error) {

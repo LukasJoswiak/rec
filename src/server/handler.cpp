@@ -2,9 +2,9 @@
 
 #include "server/handler.hpp"
 
-#include <memory>
-
 #include <google/protobuf/any.pb.h>
+
+#include <memory>
 
 Handler::Handler(ConnectionManager& connection_manager)
     : connection_manager_(connection_manager) {}
@@ -37,7 +37,8 @@ void Handler::HandleHeartbeat(
 
 void Handler::HandleRequest(
     Request& r, std::shared_ptr<TcpConnection> connection) {
-  std::cout << "Received Request from client " << connection->endpoint_name() << std::endl;
+  std::cout << "Received Request from client " << connection->endpoint_name()
+            << std::endl;
   std::cout << "  key: " << r.key() << ", value: " << r.value() << std::endl;
 }
 
