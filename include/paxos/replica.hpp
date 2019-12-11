@@ -14,6 +14,7 @@ class Replica {
  public:
   Replica();
 
+  // Begin handling messages.
   void Run();
 
  private:

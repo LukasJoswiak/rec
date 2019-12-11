@@ -37,6 +37,7 @@ $(BINDIR)/client: $(PROTO_OBJ) $(CLIENT_OBJ)
 	$(CXX) $^ -o $@ $(LIBS)
 
 -include $(CLIENT_OBJ:.o=.d)
+-include $(PAXOS_OBJ:.o=.d)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/client/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

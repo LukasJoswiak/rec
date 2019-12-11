@@ -24,8 +24,7 @@ TcpServer::TcpServer(
       handler_(connection_manager_) {
   // Spawn Paxos handlers.
   paxos::Replica replica;
-  std::thread rt(&paxos::Replica::Run, &replica);
-  rt.detach();
+  std::thread(&paxos::Replica::Run, &replica).detach();
 
   for (int i = 0; i < kServerPorts.size(); ++i) {
     auto server_port = kServerPorts.at(i);
