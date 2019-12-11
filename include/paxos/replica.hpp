@@ -7,15 +7,20 @@
 #include <vector>
 
 #include "proto/messages.pb.h"
+#include "paxos/shared_queue.hpp"
 
 namespace paxos {
 
 class Replica {
  public:
-  Replica();
+  explicit Replica(common::SharedQueue<int>& queue);
 
   // Begin handling messages.
   void Run();
+
+  void Test() {
+    queue_.push(100);
+  }
 
  private:
   int slot_in_;
@@ -23,6 +28,8 @@ class Replica {
   std::vector<Request> requests_;
   std::set<Request> proposals_;
   std::set<Decision> decisions_;
+
+  common::SharedQueue<int>& queue_;
 };
 
 }  // namespace paxos

@@ -44,7 +44,6 @@ $(BUILDDIR)/%.o: $(SRCDIR)/client/%.cpp
 
 # Replica (rec) build rules.
 $(BINDIR)/rec: $(PROTO_OBJ) $(PAXOS_OBJ) $(REC_OBJ)
-	echo $(PAXOS_OBJ)
 	$(CXX) $^ -o $@ $(LIBS)
 
 # Rebuild if any depedencies have changed (including header files).
