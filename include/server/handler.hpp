@@ -10,25 +10,28 @@
 
 #include <boost/asio.hpp>
 
-#include "proto/heartbeat.pb.h"
-#include "proto/messages.pb.h"
+#include "server/environment.hpp"
 
-// Message handler for messages received on the replica.
+// Forward declare ConnectionManager to break circular dependency.
+class ConnectionManager;
+
+// Converts messages received on the network into concrete message types and
+// forwards to the appropriate handler.
 class Handler {
  public:
-  Handler();
+  Handler(ConnectionManager& manager, std::string& server_name);
   Handler(const Handler& other) = delete;
   Handler& operator=(const Handler& other) = delete;
 
   // Parses message into appropriate message type and calls the correct handler.
-  void Handle(const std::string& message, const std::string& from) const;
+  void Handle(const std::string& message, const std::string& from);
 
   // Parses message and calls correct handler.
   void Handle(const google::protobuf::Any& message,
-              const std::string& from) const;
+              const std::string& from);
 
  private:
-  void HandleRequest(Request& r, const std::string& from) const;
+  Environment environment_;
 };
 
 #endif  // INCLUDE_SERVER_HANDLER_HPP_

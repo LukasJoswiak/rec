@@ -7,6 +7,8 @@
 #include <iostream>
 #include <thread>
 
+#include "proto/heartbeat.pb.h"
+
 const std::array<uint16_t, 3> kServerPorts = {1111, 1112, 1113};
 const std::array<std::string, 3> kServerNames =
     {"server1", "server2", "server3"};
@@ -18,7 +20,7 @@ TcpServer::TcpServer(
           boost::asio::ip::tcp::v4(), port)),
       resolver_(io_context),
       name_(name),
-      connection_manager_() {
+      connection_manager_(name) {
   for (int i = 0; i < kServerPorts.size(); ++i) {
     auto server_port = kServerPorts.at(i);
     auto server_name = kServerNames.at(i);
@@ -72,7 +74,7 @@ void TcpServer::HandleConnect(
 
     google::protobuf::Any any;
     any.PackFrom(hb);
-    connection_manager_.Deliver(endpoint_name, any);
+    connection_manager_.Deliver(any, endpoint_name);
   }
 }
 

@@ -5,7 +5,8 @@
 #include "proto/heartbeat.pb.h"
 #include "server/connection_manager.hpp"
 
-ConnectionManager::ConnectionManager() {}
+ConnectionManager::ConnectionManager(std::string& server_name)
+    : handler_(*this, server_name) {}
 
 void ConnectionManager::Add(std::shared_ptr<TcpConnection> connection) {
   if (connections_.count(connection) != 0) {
@@ -28,26 +29,32 @@ void ConnectionManager::Remove(std::shared_ptr<TcpConnection> connection) {
   PrintManagedConnections();
 }
 
-void ConnectionManager::Deliver(const std::string& endpoint,
-                                const google::protobuf::Any& message) const {
+void ConnectionManager::Deliver(const google::protobuf::Any& message,
+                                const std::string& endpoint) {
   std::string serialized;
   message.SerializeToString(&serialized);
   for (auto connection : connections_) {
     if (connection->endpoint_name() == endpoint) {
       connection->StartWrite(serialized);
+      return;
     }
   }
+
+  // TODO: If the TCP connection to a remote server was dropped, don't want
+  // to attempt local delivery.
+  // Attempt local delivery.
+  handler_.Handle(message, endpoint);
 }
 
-void ConnectionManager::Broadcast(const google::protobuf::Any& message) const {
+void ConnectionManager::Broadcast(const google::protobuf::Any& message,
+                                  const std::string& from) {
   std::string serialized;
   message.SerializeToString(&serialized);
   for (auto connection : connections_) {
     connection->StartWrite(serialized);
   }
 
-  // Use the empty string to signal message is being delivered from self.
-  const std::string from = "";
+  // Deliver message locally in addition to sending over the network.
   handler_.Handle(message, from);
 }
 
@@ -62,7 +69,6 @@ void ConnectionManager::Handle(const std::string& message,
     connection->set_endpoint_name(hb.server_name());
     Add(connection);
   } else {
-    assert(connection->endpoint_name().size() > 0);
     handler_.Handle(message, connection->endpoint_name());
   }
 }

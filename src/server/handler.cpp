@@ -6,10 +6,10 @@
 
 #include "paxos/replica.hpp"
 
-Handler::Handler() {}
+Handler::Handler(ConnectionManager& manager, std::string& server_name)
+    : environment_(manager, server_name) {}
 
-void Handler::Handle(const std::string& message,
-                     const std::string& from) const {
+void Handler::Handle(const std::string& message, const std::string& from) {
   google::protobuf::Any any;
   any.ParseFromString(message);
 
@@ -17,14 +17,9 @@ void Handler::Handle(const std::string& message,
 }
 
 void Handler::Handle(const google::protobuf::Any& message,
-                     const std::string& from) const {
+                     const std::string& from) {
   Request r;
   if (message.UnpackTo(&r)) {
-    HandleRequest(r, from);
+    environment_.HandleRequest(r, from);
   }
-}
-
-void Handler::HandleRequest(Request& r, const std::string& from) const {
-  std::cout << "Received Request from client " << from << std::endl;
-  std::cout << "  key: " << r.key() << ", value: " << r.value() << std::endl;
 }
