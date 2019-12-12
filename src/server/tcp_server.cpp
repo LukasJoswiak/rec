@@ -7,8 +7,6 @@
 #include <iostream>
 #include <thread>
 
-#include "paxos/replica.hpp"
-
 const std::array<uint16_t, 3> kServerPorts = {1111, 1112, 1113};
 const std::array<std::string, 3> kServerNames =
     {"server1", "server2", "server3"};
@@ -20,15 +18,7 @@ TcpServer::TcpServer(
           boost::asio::ip::tcp::v4(), port)),
       resolver_(io_context),
       name_(name),
-      connection_manager_(),
-      handler_(connection_manager_) {
-  // Spawn Paxos handlers.
-  paxos::Replica replica(queue_);
-  std::thread(&paxos::Replica::Run, &replica).detach();
-
-  paxos::Replica replica2(queue_);
-  std::thread(&paxos::Replica::Test, &replica2).detach();
-
+      connection_manager_() {
   for (int i = 0; i < kServerPorts.size(); ++i) {
     auto server_port = kServerPorts.at(i);
     auto server_name = kServerNames.at(i);
@@ -51,7 +41,7 @@ void TcpServer::StartConnect(
     std::cout << "Connecting to " << endpoint_iter->endpoint() << std::endl;
 
     std::shared_ptr<TcpConnection> connection = TcpConnection::Create(
-        io_context_, endpoint_name, handler_);
+        io_context_, connection_manager_, endpoint_name);
     connection->socket().async_connect(endpoint_iter->endpoint(),
                                        std::bind(&TcpServer::HandleConnect,
                                                  this, std::placeholders::_1,
@@ -88,7 +78,7 @@ void TcpServer::HandleConnect(
 
 void TcpServer::StartAccept() {
   std::shared_ptr<TcpConnection> new_connection = TcpConnection::Create(
-      io_context_, "", handler_);
+      io_context_, connection_manager_, "");
 
   acceptor_.async_accept(new_connection->socket(),
                          std::bind(&TcpServer::HandleAccept, this,

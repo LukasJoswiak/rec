@@ -8,6 +8,8 @@
 #include <memory>
 #include <set>
 #include <string>
+
+#include "server/handler.hpp"
 #include "server/tcp_connection.hpp"
 
 // Keeps track of open connections.
@@ -29,11 +31,18 @@ class ConnectionManager {
   // Attempts delivery of the message to all known endpoints.
   void Broadcast(const google::protobuf::Any& message) const;
 
+  // Passes message to handler.
+  void Handle(const std::string& message,
+              std::shared_ptr<TcpConnection> connection);
+
   // Debug function used to print the connections being managed.
   void PrintManagedConnections();
 
  private:
   std::set<std::shared_ptr<TcpConnection>> connections_;
+
+  // Stores a Handler instance to parse messages and pass on messages.
+  Handler handler_;
 };
 
 #endif  // INCLUDE_SERVER_CONNECTION_MANAGER_HPP_

@@ -1,8 +1,11 @@
 // Copyright 2019 Lukas Joswiak
 
+#include <google/protobuf/any.pb.h>
+
+#include "proto/heartbeat.pb.h"
 #include "server/connection_manager.hpp"
 
-ConnectionManager::ConnectionManager() { }
+ConnectionManager::ConnectionManager() {}
 
 void ConnectionManager::Add(std::shared_ptr<TcpConnection> connection) {
   if (connections_.count(connection) != 0) {
@@ -41,6 +44,26 @@ void ConnectionManager::Broadcast(const google::protobuf::Any& message) const {
   message.SerializeToString(&serialized);
   for (auto connection : connections_) {
     connection->StartWrite(serialized);
+  }
+
+  // Use the empty string to signal message is being delivered from self.
+  const std::string from = "";
+  handler_.Handle(message, from);
+}
+
+void ConnectionManager::Handle(const std::string& message,
+                               std::shared_ptr<TcpConnection> connection) {
+  // Special case heartbeat messages to set up the connection. All other
+  // messages will be routed to the message handler.
+  google::protobuf::Any any;
+  any.ParseFromString(message);
+  Heartbeat hb;
+  if (any.UnpackTo(&hb)) {
+    connection->set_endpoint_name(hb.server_name());
+    Add(connection);
+  } else {
+    assert(connection->endpoint_name().size() > 0);
+    handler_.Handle(message, connection->endpoint_name());
   }
 }
 

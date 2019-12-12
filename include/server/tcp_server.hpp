@@ -8,7 +8,6 @@
 
 #include <boost/asio.hpp>
 
-#include "paxos/shared_queue.hpp"
 #include "server/connection_manager.hpp"
 #include "server/handler.hpp"
 #include "server/tcp_connection.hpp"
@@ -52,8 +51,6 @@ class TcpServer {
 
   std::string name_;
   ConnectionManager connection_manager_;
-  Handler handler_;
-  common::SharedQueue<int> queue_;
 };
 
 #endif  // INCLUDE_SERVER_TCP_SERVER_HPP_

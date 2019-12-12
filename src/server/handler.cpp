@@ -2,54 +2,29 @@
 
 #include "server/handler.hpp"
 
-#include <google/protobuf/any.pb.h>
-
 #include <memory>
 
-Handler::Handler(ConnectionManager& connection_manager)
-    : connection_manager_(connection_manager) {}
+#include "paxos/replica.hpp"
+
+Handler::Handler() {}
 
 void Handler::Handle(const std::string& message,
-                     std::shared_ptr<TcpConnection> connection) {
+                     const std::string& from) const {
   google::protobuf::Any any;
   any.ParseFromString(message);
 
-  Handle(any, connection);
+  Handle(any, from);
 }
 
 void Handler::Handle(const google::protobuf::Any& message,
-                     std::shared_ptr<TcpConnection> connection) {
-  Heartbeat hb;
+                     const std::string& from) const {
   Request r;
-  if (message.UnpackTo(&hb)) {
-    HandleHeartbeat(hb, connection);
-  } else if (message.UnpackTo(&r)) {
-    HandleRequest(r, connection);
+  if (message.UnpackTo(&r)) {
+    HandleRequest(r, from);
   }
 }
 
-void Handler::HandleHeartbeat(
-    Heartbeat& hb, std::shared_ptr<TcpConnection> connection) {
-  std::cout << "Received Heartbeat" << std::endl;
-  connection->set_endpoint_name(hb.server_name());
-  connection_manager_.Add(connection);
-}
-
-void Handler::HandleRequest(
-    Request& r, std::shared_ptr<TcpConnection> connection) {
-  std::cout << "Received Request from client " << connection->endpoint_name()
-            << std::endl;
+void Handler::HandleRequest(Request& r, const std::string& from) const {
+  std::cout << "Received Request from client " << from << std::endl;
   std::cout << "  key: " << r.key() << ", value: " << r.value() << std::endl;
-}
-
-void Handler::Broadcast(const google::protobuf::Any& message) {
-  // Deliver to remote replicas.
-  connection_manager_.Broadcast(message);
-
-  // Call handler for local replica.
-  Handle(message, nullptr);
-}
-
-void Handler::Disconnect(std::shared_ptr<TcpConnection> connection) {
-  connection_manager_.Remove(connection);
 }

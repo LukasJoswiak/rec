@@ -4,22 +4,23 @@
 
 #include <iostream>
 
-// Include the Handler class explicitly to allow symbol lookup to succeed.
-#include "server/handler.hpp"
+// Include the ConnectionManager class explicitly to allow symbol lookup to
+// succeed.
+#include "server/connection_manager.hpp"
 
 std::shared_ptr<TcpConnection> TcpConnection::Create(
-    boost::asio::io_context& io_context, std::string endpoint_name,
-    Handler& handler) {
+    boost::asio::io_context& io_context, ConnectionManager& manager,
+    std::string endpoint_name) {
   return std::shared_ptr<TcpConnection>(new TcpConnection(
-        io_context, endpoint_name, handler));
+        io_context, manager, endpoint_name));
 }
 
 TcpConnection::TcpConnection(
-    boost::asio::io_context& io_context, std::string endpoint_name,
-    Handler& handler)
+    boost::asio::io_context& io_context, ConnectionManager& manager,
+    std::string endpoint_name)
     : socket_(io_context),
-      endpoint_name_(endpoint_name),
-      handler_(handler) {}
+      manager_(manager),
+      endpoint_name_(endpoint_name) {}
 
 TcpConnection::~TcpConnection() {
   std::cout << "~TcpConnection" << std::endl;
@@ -41,14 +42,14 @@ void TcpConnection::StartRead() {
 void TcpConnection::HandleRead(const boost::system::error_code& error,
                                std::size_t n) {
   if (!error) {
-    handler_.Handle(input_buffer_, shared_from_this());
+    manager_.Handle(input_buffer_, shared_from_this());
 
     input_buffer_.clear();
     StartRead();
   } else {
     std::cerr << "Error on receive: " << error.message() << std::endl;
 
-    handler_.Disconnect(shared_from_this());
+    manager_.Remove(shared_from_this());
   }
 }
 
