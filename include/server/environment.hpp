@@ -5,6 +5,9 @@
 
 #include <google/protobuf/any.pb.h>
 
+#include "paxos/acceptor.hpp"
+#include "paxos/replica.hpp"
+#include "paxos/shared_queue.hpp"
 #include "proto/messages.pb.h"
 
 // Forward declare ConnectionManager to break circular dependency.
@@ -23,8 +26,18 @@ class Environment {
   void HandleRequest(Request& r, const std::string& from);
 
  private:
+  // Attempts delivery of messages added to the shared queue. This function
+  // blocks while the queue is empty, and so should be run on its own thread.
+  void Dispatcher();
+
   ConnectionManager& manager_;
   std::string& server_name_;
+
+  paxos::Replica replica_;
+  paxos::Acceptor acceptor_;
+
+  // Threads push messages onto the shared queue to be sent.
+  common::SharedQueue<int> queue_;
 };
 
 #endif  // INCLUDE_SERVER_ENVIRONMENT_HPP_
