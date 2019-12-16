@@ -2,22 +2,16 @@
 
 #include "paxos/replica.hpp"
 
-#include <thread>
-
 namespace paxos {
 
-Replica::Replica(common::SharedQueue<int>& queue)
-    : slot_in_(1),
-      slot_out_(1),
-      queue_(queue) {
-  std::cout << "Replica created" << std::endl;
-}
+Replica::Replica(common::SharedQueue<int>& message_queue,
+                 common::SharedQueue<int>& dispatch_queue)
+    : Process(message_queue, dispatch_queue),
+      slot_in_(1),
+      slot_out_(1) {}
 
-void Replica::Run() {
-  std::cout << "Replica running on thread " << std::this_thread::get_id()
-            << std::endl;
-
-  queue_.push(104);
+void Replica::Handle(int message) {
+  std::cout << "Replica received message: " << message << std::endl;
 }
 
 }  // namespace paxos

@@ -1,5 +1,6 @@
 # Compiled objects
 *.o
+*.d
 *.ob
 build/
 

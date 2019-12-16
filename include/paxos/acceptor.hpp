@@ -3,19 +3,16 @@
 #ifndef INCLUDE_PAXOS_ACCEPTOR_HPP_
 #define INCLUDE_PAXOS_ACCEPTOR_HPP_
 
-#include "paxos/shared_queue.hpp"
+#include "paxos/process.hpp"
 
 namespace paxos {
 
-class Acceptor {
+class Acceptor : public Process {
  public:
-  explicit Acceptor(common::SharedQueue<int>& queue);
+  explicit Acceptor(common::SharedQueue<int>& message_queue,
+                    common::SharedQueue<int>& dispatch_queue);
 
-  // Begin handling messages.
-  void Run();
-
- private:
-  common::SharedQueue<int>& queue_;
+  virtual void Handle(int message);
 };
 
 }  // namespace paxos

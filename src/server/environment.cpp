@@ -10,9 +10,9 @@
 Environment::Environment(ConnectionManager& manager, std::string& server_name)
     : manager_(manager),
       server_name_(server_name),
-      replica_(queue_),
-      acceptor_(queue_) {
-  // Start message hander.
+      replica_(replica_queue_, dispatch_queue_),
+      acceptor_(acceptor_queue_, dispatch_queue_) {
+  // Start message handler.
   std::thread(&Environment::Dispatcher, this).detach();
 
   // Spawn Paxos handlers.
@@ -28,12 +28,13 @@ void Environment::Deliver(const google::protobuf::Any& message,
 void Environment::HandleRequest(Request& r, const std::string& from) {
   std::cout << "Received Request from client " << from << std::endl;
   std::cout << "  key: " << r.key() << ", value: " << r.value() << std::endl;
+  replica_queue_.push(200);
 }
 
 void Environment::Dispatcher() {
   while (1) {
-    int front = queue_.front();
+    int front = dispatch_queue_.front();
     std::cout << "Front of queue: " << front << std::endl;
-    queue_.pop();
+    dispatch_queue_.pop();
   }
 }

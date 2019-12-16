@@ -1,0 +1,36 @@
+// Copyright 2019 Lukas Joswiak
+
+#ifndef INCLUDE_PROCESS_REPLICA_HPP_
+#define INCLUDE_PROCESS_REPLICA_HPP_
+
+#include "paxos/shared_queue.hpp"
+
+namespace paxos {
+
+// Base class for behavior including receiving and sending messages. This class
+// cannot be instantiated, and all derived classes must implement the Handle
+// function.
+class Process {
+ public:
+  explicit Process(common::SharedQueue<int>& message_queue,
+                   common::SharedQueue<int>& dispatch_queue);
+
+  // Begin handling messages.
+  virtual void Run();
+
+  // Handle a single message received on the message queue. This function should
+  // be overridden by the derived class to implement message specific
+  // functionality.
+  virtual void Handle(int message) = 0;
+
+ private:
+  // As messages for the process are received, they are added to this queue.
+  common::SharedQueue<int>& message_queue_;
+
+  // Messages added to this queue will be delivered to the appropriate server.
+  common::SharedQueue<int>& dispatch_queue_;
+};
+
+}  // namespace paxos
+
+#endif  // INCLUDE_PROCESS_REPLICA_HPP_

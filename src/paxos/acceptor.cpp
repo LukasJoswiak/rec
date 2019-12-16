@@ -2,19 +2,16 @@
 
 #include "paxos/acceptor.hpp"
 
-#include <thread>
+#include <iostream>
 
 namespace paxos {
 
-Acceptor::Acceptor(common::SharedQueue<int>& queue) : queue_(queue) {
-  std::cout << "Acceptor created" << std::endl;
-}
+Acceptor::Acceptor(common::SharedQueue<int>& message_queue,
+                   common::SharedQueue<int>& dispatch_queue)
+    : Process(message_queue, dispatch_queue) {}
 
-void Acceptor::Run() {
-  std::cout << "Acceptor running on thread " << std::this_thread::get_id()
-            << std::endl;
-
-  queue_.push(105);
+void Acceptor::Handle(int message) {
+  std::cout << "Acceptor received message: " << message << std::endl;
 }
 
 }  // namespace paxos

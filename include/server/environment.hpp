@@ -36,8 +36,12 @@ class Environment {
   paxos::Replica replica_;
   paxos::Acceptor acceptor_;
 
-  // Threads push messages onto the shared queue to be sent.
-  common::SharedQueue<int> queue_;
+  // Queues used to pass messages to threads.
+  common::SharedQueue<int> replica_queue_;
+  common::SharedQueue<int> acceptor_queue_;
+
+  // Threads push messages onto a shared queue to enqueue them for delivery.
+  common::SharedQueue<int> dispatch_queue_;
 };
 
 #endif  // INCLUDE_SERVER_ENVIRONMENT_HPP_
