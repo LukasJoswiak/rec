@@ -3,6 +3,8 @@
 #ifndef INCLUDE_SERVER_ENVIRONMENT_HPP_
 #define INCLUDE_SERVER_ENVIRONMENT_HPP_
 
+#include <string>
+
 #include "paxos/acceptor.hpp"
 #include "paxos/replica.hpp"
 #include "paxos/shared_queue.hpp"

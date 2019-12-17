@@ -16,7 +16,7 @@ void Process::Run() {
   while (1) {
     auto front = message_queue_.front();
     message_queue_.pop();
-    
+
     // Call handler in derived class.
     Handle(std::move(front));
   }

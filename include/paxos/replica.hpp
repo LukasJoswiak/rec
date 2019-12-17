@@ -4,6 +4,7 @@
 #define INCLUDE_PAXOS_REPLICA_HPP_
 
 #include <set>
+#include <string>
 #include <vector>
 
 #include "paxos/process.hpp"

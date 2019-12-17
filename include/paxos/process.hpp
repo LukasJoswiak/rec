@@ -1,7 +1,7 @@
 // Copyright 2019 Lukas Joswiak
 
-#ifndef INCLUDE_PROCESS_REPLICA_HPP_
-#define INCLUDE_PROCESS_REPLICA_HPP_
+#ifndef INCLUDE_PAXOS_PROCESS_HPP_
+#define INCLUDE_PAXOS_PROCESS_HPP_
 
 #include "paxos/shared_queue.hpp"
 
@@ -35,4 +35,4 @@ class Process {
 
 }  // namespace paxos
 
-#endif  // INCLUDE_PROCESS_REPLICA_HPP_
+#endif  // INCLUDE_PAXOS_PROCESS_HPP_

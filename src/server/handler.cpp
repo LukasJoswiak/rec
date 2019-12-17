@@ -6,6 +6,8 @@
 
 #include "paxos/replica.hpp"
 
+// TODO: May be able to get rid of the Handler class
+
 Handler::Handler(ConnectionManager& manager, std::string& server_name)
     : environment_(manager, server_name) {}
 
