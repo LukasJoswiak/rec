@@ -8,6 +8,7 @@
 // succeed.
 #include "server/connection_manager.hpp"
 
+
 std::shared_ptr<TcpConnection> TcpConnection::Create(
     boost::asio::io_context& io_context, ConnectionManager& manager,
     std::string endpoint_name) {
@@ -33,18 +34,23 @@ void TcpConnection::Start() {
 }
 
 void TcpConnection::StartRead() {
-  boost::asio::async_read_until(
-      socket_, boost::asio::dynamic_buffer(input_buffer_), '\n',
+  boost::asio::async_read(
+      socket_, input_buffer_,
+      boost::asio::transfer_at_least(1),
       std::bind(&TcpConnection::HandleRead, shared_from_this(),
                 std::placeholders::_1, std::placeholders::_2));
 }
 
 void TcpConnection::HandleRead(const boost::system::error_code& error,
-                               std::size_t n) {
+                               std::size_t bytes_transferred) {
   if (!error) {
-    manager_.Handle(input_buffer_, shared_from_this());
+    std::string line(
+        boost::asio::buffers_begin(input_buffer_.data()),
+        boost::asio::buffers_begin(input_buffer_.data()) + bytes_transferred);
+    input_buffer_.consume(bytes_transferred);
 
-    input_buffer_.clear();
+    manager_.Handle(line, shared_from_this());
+
     StartRead();
   } else {
     std::cerr << "Error on receive: " << error.message() << std::endl;
@@ -62,5 +68,4 @@ void TcpConnection::StartWrite(const std::string& message) {
 }
 
 void TcpConnection::HandleWrite(const boost::system::error_code& error,
-                                size_t bytes_transferred) {
-}
+                                size_t bytes_transferred) {}

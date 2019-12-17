@@ -13,12 +13,14 @@ namespace paxos {
 
 class Replica : public Process {
  public:
-  explicit Replica(common::SharedQueue<int>& message_queue,
-                   common::SharedQueue<int>& dispatch_queue);
+  Replica(common::SharedQueue<Message>& message_queue,
+          common::SharedQueue<int>& dispatch_queue);
 
-  virtual void Handle(int message);
+  virtual void Handle(Message&& message);
 
  private:
+  void HandleRequest(Request& r, const std::string& from);
+
   int slot_in_;
   int slot_out_;
   std::vector<Request> requests_;

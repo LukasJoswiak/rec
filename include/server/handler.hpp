@@ -3,13 +3,12 @@
 #ifndef INCLUDE_SERVER_HANDLER_HPP_
 #define INCLUDE_SERVER_HANDLER_HPP_
 
-#include <google/protobuf/any.pb.h>
-
 #include <memory>
 #include <string>
 
 #include <boost/asio.hpp>
 
+#include "proto/messages.pb.h"
 #include "server/environment.hpp"
 
 // Forward declare ConnectionManager to break circular dependency.
@@ -24,11 +23,10 @@ class Handler {
   Handler& operator=(const Handler& other) = delete;
 
   // Parses message into appropriate message type and calls the correct handler.
-  void Handle(const std::string& message, const std::string& from);
+  void Handle(const std::string& raw_message);
 
   // Parses message and calls correct handler.
-  void Handle(const google::protobuf::Any& message,
-              const std::string& from);
+  void Handle(const Message& message);
 
  private:
   Environment environment_;

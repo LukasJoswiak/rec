@@ -2,8 +2,6 @@
 
 #include "client/tcp_client.hpp"
 
-#include <google/protobuf/any.pb.h>
-
 #include <iostream>
 
 #include "proto/messages.pb.h"
@@ -49,11 +47,13 @@ void TcpClient::HandleConnect(
     r.set_key("simple_key");
     r.set_value("sample value");
 
-    google::protobuf::Any any;
-    any.PackFrom(r);
+    Message m;
+    m.set_type(Message_MessageType_REQUEST);
+    m.mutable_message()->PackFrom(r);
+    m.set_from("client1");
 
     std::string serialized;
-    any.SerializeToString(&serialized);
+    m.SerializeToString(&serialized);
 
     StartRead();
     StartWrite(serialized);

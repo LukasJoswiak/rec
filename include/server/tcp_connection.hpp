@@ -62,9 +62,9 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
                    size_t bytes_transferred);
 
   boost::asio::ip::tcp::socket socket_;
+  boost::asio::streambuf input_buffer_;
   ConnectionManager& manager_;
   std::string endpoint_name_;
-  std::string input_buffer_;
 };
 
 #endif  // INCLUDE_SERVER_TCP_CONNECTION_HPP_

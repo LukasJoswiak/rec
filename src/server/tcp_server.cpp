@@ -2,8 +2,6 @@
 
 #include "server/tcp_server.hpp"
 
-#include <google/protobuf/any.pb.h>
-
 #include <iostream>
 #include <thread>
 
@@ -69,12 +67,11 @@ void TcpServer::HandleConnect(
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
     connection_manager_.Add(connection);
 
-    Heartbeat hb;
-    hb.set_server_name(name_);
+    Message message;
+    message.set_type(Message_MessageType_HEARTBEAT);
+    message.set_from(name_);
 
-    google::protobuf::Any any;
-    any.PackFrom(hb);
-    connection_manager_.Deliver(any, endpoint_name);
+    connection_manager_.Deliver(message, endpoint_name);
   }
 }
 

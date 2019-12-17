@@ -20,15 +20,12 @@ Environment::Environment(ConnectionManager& manager, std::string& server_name)
   std::thread(&paxos::Acceptor::Run, &acceptor_).detach();
 }
 
-void Environment::Deliver(const google::protobuf::Any& message,
-                          const std::string& endpoint) {
+void Environment::Deliver(const Message& message, const std::string& endpoint) {
   manager_.Deliver(message, endpoint);
 }
 
-void Environment::HandleRequest(Request& r, const std::string& from) {
-  std::cout << "Received Request from client " << from << std::endl;
-  std::cout << "  key: " << r.key() << ", value: " << r.value() << std::endl;
-  replica_queue_.push(200);
+void Environment::HandleReplicaMessage(const Message& m) {
+  replica_queue_.push(m);
 }
 
 void Environment::Dispatcher() {

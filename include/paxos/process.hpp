@@ -5,6 +5,8 @@
 
 #include "paxos/shared_queue.hpp"
 
+#include "proto/messages.pb.h"
+
 namespace paxos {
 
 // Base class for behavior including receiving and sending messages. This class
@@ -12,7 +14,7 @@ namespace paxos {
 // function.
 class Process {
  public:
-  explicit Process(common::SharedQueue<int>& message_queue,
+  explicit Process(common::SharedQueue<Message>& message_queue,
                    common::SharedQueue<int>& dispatch_queue);
 
   // Begin handling messages.
@@ -21,11 +23,11 @@ class Process {
   // Handle a single message received on the message queue. This function should
   // be overridden by the derived class to implement message specific
   // functionality.
-  virtual void Handle(int message) = 0;
+  virtual void Handle(Message&& message) = 0;
 
- private:
+ protected:
   // As messages for the process are received, they are added to this queue.
-  common::SharedQueue<int>& message_queue_;
+  common::SharedQueue<Message>& message_queue_;
 
   // Messages added to this queue will be delivered to the appropriate server.
   common::SharedQueue<int>& dispatch_queue_;

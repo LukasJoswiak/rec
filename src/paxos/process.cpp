@@ -7,16 +7,18 @@
 
 namespace paxos {
 
-Process::Process(common::SharedQueue<int>& message_queue,
+Process::Process(common::SharedQueue<Message>& message_queue,
                  common::SharedQueue<int>& dispatch_queue)
     : message_queue_(message_queue),
       dispatch_queue_(dispatch_queue) {}
 
 void Process::Run() {
   while (1) {
-    int front = message_queue_.front();
+    auto front = message_queue_.front();
     message_queue_.pop();
-    Handle(front);
+    
+    // Call handler in derived class.
+    Handle(std::move(front));
   }
 }
 

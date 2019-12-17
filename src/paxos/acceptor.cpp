@@ -6,12 +6,12 @@
 
 namespace paxos {
 
-Acceptor::Acceptor(common::SharedQueue<int>& message_queue,
+Acceptor::Acceptor(common::SharedQueue<Message>& message_queue,
                    common::SharedQueue<int>& dispatch_queue)
     : Process(message_queue, dispatch_queue) {}
 
-void Acceptor::Handle(int message) {
-  std::cout << "Acceptor received message: " << message << std::endl;
+void Acceptor::Handle(Message&& message) {
+  std::cout << "Acceptor received message" << std::endl;
 }
 
 }  // namespace paxos

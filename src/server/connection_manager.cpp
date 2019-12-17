@@ -1,7 +1,5 @@
 // Copyright 2019 Lukas Joswiak
 
-#include <google/protobuf/any.pb.h>
-
 #include "proto/heartbeat.pb.h"
 #include "server/connection_manager.hpp"
 
@@ -29,7 +27,7 @@ void ConnectionManager::Remove(std::shared_ptr<TcpConnection> connection) {
   PrintManagedConnections();
 }
 
-void ConnectionManager::Deliver(const google::protobuf::Any& message,
+void ConnectionManager::Deliver(const Message& message,
                                 const std::string& endpoint) {
   std::string serialized;
   message.SerializeToString(&serialized);
@@ -43,11 +41,10 @@ void ConnectionManager::Deliver(const google::protobuf::Any& message,
   // TODO: If the TCP connection to a remote server was dropped, don't want
   // to attempt local delivery.
   // Attempt local delivery.
-  handler_.Handle(message, endpoint);
+  handler_.Handle(message);
 }
 
-void ConnectionManager::Broadcast(const google::protobuf::Any& message,
-                                  const std::string& from) {
+void ConnectionManager::Broadcast(const Message& message) {
   std::string serialized;
   message.SerializeToString(&serialized);
   for (auto connection : connections_) {
@@ -55,21 +52,23 @@ void ConnectionManager::Broadcast(const google::protobuf::Any& message,
   }
 
   // Deliver message locally in addition to sending over the network.
-  handler_.Handle(message, from);
+  handler_.Handle(message);
 }
 
-void ConnectionManager::Handle(const std::string& message,
+void ConnectionManager::Handle(const std::string& raw_message,
                                std::shared_ptr<TcpConnection> connection) {
   // Special case heartbeat messages to set up the connection. All other
   // messages will be routed to the message handler.
-  google::protobuf::Any any;
-  any.ParseFromString(message);
-  Heartbeat hb;
-  if (any.UnpackTo(&hb)) {
-    connection->set_endpoint_name(hb.server_name());
+  Message message;
+  message.ParseFromString(raw_message);
+  if (message.type() == Message_MessageType_HEARTBEAT) {
+    connection->set_endpoint_name(message.from());
     Add(connection);
+  } else if (message.type() == Message_MessageType_UNKNOWN) {
+    std::cout << "Unknown message type from " << message.from()
+              << ", dropping message..." << std::endl;
   } else {
-    handler_.Handle(message, connection->endpoint_name());
+    handler_.Handle(message);
   }
 }
 

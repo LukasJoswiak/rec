@@ -3,8 +3,6 @@
 #ifndef INCLUDE_SERVER_ENVIRONMENT_HPP_
 #define INCLUDE_SERVER_ENVIRONMENT_HPP_
 
-#include <google/protobuf/any.pb.h>
-
 #include "paxos/acceptor.hpp"
 #include "paxos/replica.hpp"
 #include "paxos/shared_queue.hpp"
@@ -20,10 +18,9 @@ class Environment {
   Environment(ConnectionManager& manager, std::string& server_name);
 
   // Sends the given message to the given endpoint.
-  void Deliver(const google::protobuf::Any& message,
-               const std::string& endpoint);
+  void Deliver(const Message& message, const std::string& endpoint);
 
-  void HandleRequest(Request& r, const std::string& from);
+  void HandleReplicaMessage(const Message& m);
 
  private:
   // Attempts delivery of messages added to the shared queue. This function
@@ -37,8 +34,8 @@ class Environment {
   paxos::Acceptor acceptor_;
 
   // Queues used to pass messages to threads.
-  common::SharedQueue<int> replica_queue_;
-  common::SharedQueue<int> acceptor_queue_;
+  common::SharedQueue<Message> replica_queue_;
+  common::SharedQueue<Message> acceptor_queue_;
 
   // Threads push messages onto a shared queue to enqueue them for delivery.
   common::SharedQueue<int> dispatch_queue_;

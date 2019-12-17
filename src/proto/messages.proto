@@ -1,5 +1,24 @@
 syntax = "proto3";
 
+import "google/protobuf/any.proto";
+
+message Message {
+  enum MessageType {
+    UNKNOWN = 0;
+    HEARTBEAT = 1;
+    REQUEST = 2;
+    DECISION = 3;
+    PVALUE = 4;
+    P1A = 5;
+    P1B = 6;
+    P2A = 7;
+    P2B = 8;
+  }
+  MessageType type = 1;
+  google.protobuf.Any message = 2;
+  string from = 3;
+}
+
 message Request {
   string key = 1;
   string value = 2;

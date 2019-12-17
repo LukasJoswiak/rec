@@ -3,12 +3,11 @@
 #ifndef INCLUDE_SERVER_CONNECTION_MANAGER_HPP_
 #define INCLUDE_SERVER_CONNECTION_MANAGER_HPP_
 
-#include <google/protobuf/any.pb.h>
-
 #include <memory>
 #include <set>
 #include <string>
 
+#include "proto/messages.pb.h"
 #include "server/handler.hpp"
 #include "server/tcp_connection.hpp"
 
@@ -27,14 +26,13 @@ class ConnectionManager {
   // Attempts delivery of the message to the given endpoint. Endpoint must be an
   // active connection tracked by the connection manager or the name of this
   // server so message can be handled locally.
-  void Deliver(const google::protobuf::Any& message,
-               const std::string& endpoint);
+  void Deliver(const Message& message, const std::string& endpoint);
 
   // Attempts delivery of the message to all known endpoints.
-  void Broadcast(const google::protobuf::Any& message, const std::string& from);
+  void Broadcast(const Message& message);
 
   // Passes message to handler.
-  void Handle(const std::string& message,
+  void Handle(const std::string& raw_message,
               std::shared_ptr<TcpConnection> connection);
 
   // Debug function used to print the connections being managed.
