@@ -7,7 +7,7 @@
 namespace paxos {
 
 Acceptor::Acceptor(common::SharedQueue<Message>& message_queue,
-                   common::SharedQueue<int>& dispatch_queue)
+                   common::SharedQueue<Message>& dispatch_queue)
     : Process(message_queue, dispatch_queue) {}
 
 void Acceptor::Handle(Message&& message) {

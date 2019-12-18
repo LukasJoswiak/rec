@@ -11,7 +11,7 @@ namespace paxos {
 class Acceptor : public Process {
  public:
   Acceptor(common::SharedQueue<Message>& message_queue,
-           common::SharedQueue<int>& dispatch_queue);
+           common::SharedQueue<Message>& dispatch_queue);
 
   virtual void Handle(Message&& message);
 };

@@ -5,7 +5,7 @@
 namespace paxos {
 
 Replica::Replica(common::SharedQueue<Message>& message_queue,
-                 common::SharedQueue<int>& dispatch_queue)
+                 common::SharedQueue<Message>& dispatch_queue)
     : Process(message_queue, dispatch_queue),
       slot_in_(1),
       slot_out_(1) {}

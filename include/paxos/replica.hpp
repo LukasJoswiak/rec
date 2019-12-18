@@ -15,7 +15,7 @@ namespace paxos {
 class Replica : public Process {
  public:
   Replica(common::SharedQueue<Message>& message_queue,
-          common::SharedQueue<int>& dispatch_queue);
+          common::SharedQueue<Message>& dispatch_queue);
 
   virtual void Handle(Message&& message);
 

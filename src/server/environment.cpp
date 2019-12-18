@@ -30,8 +30,8 @@ void Environment::HandleReplicaMessage(const Message& m) {
 
 void Environment::Dispatcher() {
   while (1) {
-    int front = dispatch_queue_.front();
-    std::cout << "Front of queue: " << front << std::endl;
+    Message front = dispatch_queue_.front();
+    std::cout << "Sending message from: " << front.from() << std::endl;
     dispatch_queue_.pop();
   }
 }
