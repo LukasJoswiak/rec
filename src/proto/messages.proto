@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/any.proto";
+import "proto/utility.proto";
 
 message Message {
   enum MessageType {
@@ -20,27 +21,28 @@ message Message {
 }
 
 message Request {
-  string key = 1;
-  string value = 2;
+  Command command = 1;
+  // Address of the originator of the request.
+  string source = 2;
+}
+
+message Proposal {
+  int64 slot_number = 1;
+  Command command = 2;
 }
 
 message Decision {
-
-}
-
-message PValue {
-  int64 ballot_number = 1;
-  int64 slot_number = 2;
-  Request command = 3;
+  int64 slot_number = 1;
+  Command command = 2;
 }
 
 message P1A {
-  int64 ballot_number = 1;
+  BallotNumber ballot_number = 1;
 }
 
 message P1B {
-  int64 ballot_number = 1;
-  repeated PValue accepted = 2;
+  BallotNumber ballot_number = 1;
+  PValue accepted = 2;
 }
 
 message P2A {
@@ -48,6 +50,6 @@ message P2A {
 }
 
 message P2B {
-  int64 ballot_number = 1;
+  BallotNumber ballot_number = 1;
   int64 slot_number = 2;
 }

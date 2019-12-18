@@ -43,9 +43,14 @@ void TcpClient::HandleConnect(
   } else {
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
 
+    auto c = new Command();
+    c->set_client("client1");
+    c->set_sequence_number(1);
+    c->set_operation(0);
+
     Request r;
-    r.set_key("simple_key");
-    r.set_value("sample value");
+    r.set_allocated_command(c);
+    r.set_source("client1");
 
     Message m;
     m.set_type(Message_MessageType_REQUEST);

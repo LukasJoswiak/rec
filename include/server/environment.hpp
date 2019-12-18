@@ -40,7 +40,8 @@ class Environment {
   common::SharedQueue<Message> acceptor_queue_;
 
   // Threads push messages onto a shared queue to enqueue them for delivery.
-  common::SharedQueue<Message> dispatch_queue_;
+  // Pair consists of <destination name, message>.
+  common::SharedQueue<std::pair<std::string, Message>> dispatch_queue_;
 };
 
 #endif  // INCLUDE_SERVER_ENVIRONMENT_HPP_

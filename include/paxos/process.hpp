@@ -14,8 +14,8 @@ namespace paxos {
 // function.
 class Process {
  public:
-  explicit Process(common::SharedQueue<Message>& message_queue,
-                   common::SharedQueue<Message>& dispatch_queue);
+  Process(common::SharedQueue<Message>& message_queue,
+          common::SharedQueue<std::pair<std::string, Message>>& dispatch_queue);
 
   // Begin handling messages.
   virtual void Run();
@@ -30,7 +30,7 @@ class Process {
   common::SharedQueue<Message>& message_queue_;
 
   // Messages added to this queue will be delivered to the appropriate server.
-  common::SharedQueue<Message>& dispatch_queue_;
+  common::SharedQueue<std::pair<std::string, Message>>& dispatch_queue_;
 };
 
 }  // namespace paxos

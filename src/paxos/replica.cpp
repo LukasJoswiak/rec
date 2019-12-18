@@ -4,8 +4,9 @@
 
 namespace paxos {
 
-Replica::Replica(common::SharedQueue<Message>& message_queue,
-                 common::SharedQueue<Message>& dispatch_queue)
+Replica::Replica(
+    common::SharedQueue<Message>& message_queue,
+    common::SharedQueue<std::pair<std::string, Message>>& dispatch_queue)
     : Process(message_queue, dispatch_queue),
       slot_in_(1),
       slot_out_(1) {}
@@ -20,7 +21,6 @@ void Replica::Handle(Message&& message) {
 
 void Replica::HandleRequest(Request& r, const std::string& from) {
   std::cout << "Received Request from " << from << std::endl;
-  std::cout << "  key: " << r.key() << ", value: " << r.value() << std::endl;
 }
 
 }  // namespace paxos

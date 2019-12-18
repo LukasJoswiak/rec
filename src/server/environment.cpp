@@ -2,8 +2,6 @@
 
 #include "server/environment.hpp"
 
-#include <iostream>
-
 #include "paxos/replica.hpp"
 #include "server/connection_manager.hpp"
 
@@ -30,8 +28,10 @@ void Environment::HandleReplicaMessage(const Message& m) {
 
 void Environment::Dispatcher() {
   while (1) {
-    Message front = dispatch_queue_.front();
-    std::cout << "Sending message from: " << front.from() << std::endl;
+    auto pair = dispatch_queue_.front();
+    std::string destination = std::get<0>(pair);
+    Message message = std::get<1>(pair);
+    manager_.Deliver(message, destination);
     dispatch_queue_.pop();
   }
 }

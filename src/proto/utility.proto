@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+message BallotNumber {
+  int64 number = 1;
+  string address = 2;
+}
+
+message Command {
+  string client = 1;
+  int64 sequence_number = 2;
+  int64 operation = 3;
+}
+
+message PValue {
+  int64 ballot_number = 1;
+  int64 slot_number = 2;
+  Command command = 3;
+}
