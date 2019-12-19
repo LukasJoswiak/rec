@@ -18,10 +18,6 @@ Environment::Environment(ConnectionManager& manager, std::string& server_name)
   std::thread(&paxos::Acceptor::Run, &acceptor_).detach();
 }
 
-void Environment::Deliver(const Message& message, const std::string& endpoint) {
-  manager_.Deliver(message, endpoint);
-}
-
 void Environment::HandleReplicaMessage(const Message& m) {
   replica_queue_.push(m);
 }
@@ -29,9 +25,14 @@ void Environment::HandleReplicaMessage(const Message& m) {
 void Environment::Dispatcher() {
   while (1) {
     auto pair = dispatch_queue_.front();
-    std::string destination = std::get<0>(pair);
-    Message message = std::get<1>(pair);
-    manager_.Deliver(message, destination);
     dispatch_queue_.pop();
+
+    Message message = std::get<1>(pair);
+    message.set_from(server_name_);
+    if (auto destination = std::get<0>(pair)) {
+      manager_.Deliver(message, destination.value());
+    } else {
+      manager_.Broadcast(message);
+    }
   }
 }

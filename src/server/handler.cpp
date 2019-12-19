@@ -18,7 +18,8 @@ void Handler::Handle(const std::string& raw_message) {
 }
 
 void Handler::Handle(const Message& message) {
-  if (message.type() == Message_MessageType_REQUEST) {
+  if (message.type() == Message_MessageType_REQUEST ||
+      message.type() == Message_MessageType_PROPOSAL) {
     environment_.HandleReplicaMessage(message);
   }
 }

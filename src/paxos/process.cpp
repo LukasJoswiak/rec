@@ -9,7 +9,8 @@ namespace paxos {
 
 Process::Process(
     common::SharedQueue<Message>& message_queue,
-    common::SharedQueue<std::pair<std::string, Message>>& dispatch_queue)
+    common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
+        dispatch_queue)
     : message_queue_(message_queue),
       dispatch_queue_(dispatch_queue) {}
 

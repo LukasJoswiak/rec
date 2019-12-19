@@ -8,12 +8,13 @@ message Message {
     UNKNOWN = 0;
     HEARTBEAT = 1;
     REQUEST = 2;
-    DECISION = 3;
-    PVALUE = 4;
-    P1A = 5;
-    P1B = 6;
-    P2A = 7;
-    P2B = 8;
+    PROPOSAL = 3;
+    DECISION = 4;
+    PVALUE = 5;
+    P1A = 6;
+    P1B = 7;
+    P2A = 8;
+    P2B = 9;
   }
   MessageType type = 1;
   google.protobuf.Any message = 2;

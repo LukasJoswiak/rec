@@ -5,7 +5,7 @@
 
 #include <set>
 #include <string>
-#include <vector>
+#include <queue>
 
 #include "paxos/process.hpp"
 #include "proto/messages.pb.h"
@@ -15,16 +15,20 @@ namespace paxos {
 class Replica : public Process {
  public:
   Replica(common::SharedQueue<Message>& message_queue,
-          common::SharedQueue<std::pair<std::string, Message>>& dispatch_queue);
+          common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
+              dispatch_queue);
 
   virtual void Handle(Message&& message);
 
  private:
-  void HandleRequest(Request& r, const std::string& from);
+  void HandleRequest(Request&& r, const std::string& from);
+  void HandleProposal(Proposal&& r, const std::string& from);
+
+  void Propose();
 
   int slot_in_;
   int slot_out_;
-  std::vector<Request> requests_;
+  std::queue<Request> requests_;
   std::set<Request> proposals_;
   std::set<Decision> decisions_;
 };

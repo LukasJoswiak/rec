@@ -12,7 +12,8 @@ class Acceptor : public Process {
  public:
   Acceptor(
       common::SharedQueue<Message>& message_queue,
-      common::SharedQueue<std::pair<std::string, Message>>& dispatch_queue);
+      common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
+          dispatch_queue);
 
   virtual void Handle(Message&& message);
 };

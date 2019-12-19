@@ -19,9 +19,6 @@ class Environment {
  public:
   Environment(ConnectionManager& manager, std::string& server_name);
 
-  // Sends the given message to the given endpoint.
-  void Deliver(const Message& message, const std::string& endpoint);
-
   void HandleReplicaMessage(const Message& m);
 
  private:
@@ -40,8 +37,10 @@ class Environment {
   common::SharedQueue<Message> acceptor_queue_;
 
   // Threads push messages onto a shared queue to enqueue them for delivery.
-  // Pair consists of <destination name, message>.
-  common::SharedQueue<std::pair<std::string, Message>> dispatch_queue_;
+  // Pair consists of <optional(destination name), message>. If the destination
+  // does not contain a value, the message will be broadcast to all servers.
+  common::SharedQueue<std::pair<std::optional<std::string>, Message>>
+      dispatch_queue_;
 };
 
 #endif  // INCLUDE_SERVER_ENVIRONMENT_HPP_
