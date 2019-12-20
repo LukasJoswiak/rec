@@ -27,10 +27,7 @@ void Replica::Handle(Message&& message) {
 }
 
 void Replica::HandleRequest(Request&& r, const std::string& from) {
-  std::cout << "Received Request from " << from << std::endl;
-
   requests_.push(r);
-
   Propose();
 }
 
@@ -39,21 +36,28 @@ void Replica::HandleProposal(Proposal&& r, const std::string& from) {
 }
 
 void Replica::Propose() {
-  auto request = requests_.front();
-  requests_.pop();
+  while (!requests_.empty()) {
+    if (decisions_.find(slot_in_) == decisions_.end()) {
+      auto request = requests_.front();
+      requests_.pop();
 
-  // Take ownership of the command object.
-  auto command = request.release_command();
+      // Take ownership of the command object.
+      auto command = request.release_command();
 
-  Proposal proposal;
-  proposal.set_slot_number(slot_in_++);
-  proposal.set_allocated_command(command);
+      Proposal proposal;
+      proposal.set_slot_number(slot_in_);
+      proposal.set_allocated_command(command);
+      proposals_[slot_in_++] = proposal;
 
-  Message m;
-  m.set_type(Message_MessageType_PROPOSAL);
-  m.mutable_message()->PackFrom(proposal);
+      Message m;
+      m.set_type(Message_MessageType_PROPOSAL);
+      m.mutable_message()->PackFrom(proposal);
 
-  dispatch_queue_.push(std::make_pair(std::nullopt, m));
+      // Send proposal to all servers for now.
+      // TODO: only send proposal  to leaders.
+      dispatch_queue_.push(std::make_pair(std::nullopt, m));
+    }
+  }
 }
 
 }  // namespace paxos

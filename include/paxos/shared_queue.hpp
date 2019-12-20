@@ -35,6 +35,9 @@ class SharedQueue {
   // Returns the number of elements in the queue.
   int size();
 
+  // Returns true if the queue is empty.
+  bool empty();
+
  private:
   std::deque<T> queue_;
   std::mutex mutex_;
@@ -89,6 +92,12 @@ template <typename T>
 int SharedQueue<T>::size() {
   std::unique_lock<std::mutex> lock(mutex_);
   return queue_.size();
+}
+
+template <typename T>
+bool SharedQueue<T>::empty() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  return queue_.empty();
 }
 
 }  // namespace common

@@ -3,8 +3,8 @@
 #ifndef INCLUDE_PAXOS_REPLICA_HPP_
 #define INCLUDE_PAXOS_REPLICA_HPP_
 
-#include <set>
 #include <string>
+#include <unordered_map>
 #include <queue>
 
 #include "paxos/process.hpp"
@@ -29,8 +29,8 @@ class Replica : public Process {
   int slot_in_;
   int slot_out_;
   std::queue<Request> requests_;
-  std::set<Request> proposals_;
-  std::set<Decision> decisions_;
+  std::unordered_map<int, Proposal> proposals_;
+  std::unordered_map<int, Decision> decisions_;
 };
 
 }  // namespace paxos
