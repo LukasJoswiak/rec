@@ -12,7 +12,7 @@ message Command {
 }
 
 message PValue {
-  int64 ballot_number = 1;
+  BallotNumber ballot_number = 1;
   int64 slot_number = 2;
   Command command = 3;
 }

@@ -22,6 +22,10 @@ void Environment::HandleReplicaMessage(const Message& m) {
   replica_queue_.push(m);
 }
 
+void Environment::HandleAcceptorMessage(const Message& m) {
+  acceptor_queue_.push(m);
+}
+
 void Environment::Dispatcher() {
   while (1) {
     auto pair = dispatch_queue_.front();

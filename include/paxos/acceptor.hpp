@@ -3,6 +3,8 @@
 #ifndef INCLUDE_PAXOS_ACCEPTOR_HPP_
 #define INCLUDE_PAXOS_ACCEPTOR_HPP_
 
+#include <set>
+
 #include "paxos/process.hpp"
 #include "proto/messages.pb.h"
 
@@ -16,6 +18,13 @@ class Acceptor : public Process {
           dispatch_queue);
 
   virtual void Handle(Message&& message);
+
+ private:
+  void HandleP1A(P1A&& p, const std::string& from);
+  void HandleP2A(P2A&& p, const std::string& from);
+
+  BallotNumber ballot_number_;
+  std::set<PValue> accepted_;
 };
 
 }  // namespace paxos

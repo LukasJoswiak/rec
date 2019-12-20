@@ -54,7 +54,7 @@ void Replica::Propose() {
       m.mutable_message()->PackFrom(proposal);
 
       // Send proposal to all servers for now.
-      // TODO: only send proposal  to leaders.
+      // TODO: only send proposal to leaders.
       dispatch_queue_.push(std::make_pair(std::nullopt, m));
     }
   }

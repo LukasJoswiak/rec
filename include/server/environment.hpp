@@ -20,6 +20,7 @@ class Environment {
   Environment(ConnectionManager& manager, std::string& server_name);
 
   void HandleReplicaMessage(const Message& m);
+  void HandleAcceptorMessage(const Message& m);
 
  private:
   // Attempts delivery of messages added to the shared queue. This function

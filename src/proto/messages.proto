@@ -43,7 +43,7 @@ message P1A {
 
 message P1B {
   BallotNumber ballot_number = 1;
-  PValue accepted = 2;
+  repeated PValue accepted = 2;
 }
 
 message P2A {
