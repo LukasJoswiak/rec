@@ -1,0 +1,69 @@
+// Copyright 2019 Lukas Joswiak
+
+#include "paxos/commander.hpp"
+
+#include <iostream>
+
+namespace paxos {
+
+Commander::Commander(
+    common::SharedQueue<Message>& message_queue,
+    common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
+        dispatch_queue,
+    BallotNumber ballot_number, int slot_number, Command command)
+    : Process(message_queue, dispatch_queue),
+      ballot_number_(ballot_number),
+      slot_number_(slot_number),
+      command_(command) {
+  P2A p;    
+  p.set_allocated_ballot_number(new BallotNumber(ballot_number));
+  p.set_slot_number(slot_number);
+  p.set_allocated_command(new Command(command));
+
+  Message m;
+  m.set_type(Message_MessageType_P2A);
+  m.mutable_message()->PackFrom(p);
+
+  dispatch_queue_.push(std::make_pair(std::nullopt, m));
+}
+
+void Commander::Handle(Message&& message) {
+  if (message.type() == Message_MessageType_P2B) {
+    P2B p;
+    message.message().UnpackTo(&p);
+    HandleP2B(std::move(p), message.from());
+  }
+}
+
+void Commander::HandleP2B(P2B&& p, const std::string& from) {
+  std::cout << "Commander received P2B from " << from << std::endl;
+  if (BallotNumbersEqual(ballot_number_, p.ballot_number())) {
+    received_from_.insert(from);
+    
+    // Hardcoding quorum size of 2 for now.
+    // TODO: modify quorum size to be configurable.
+    if (received_from_.size() >= 2) {
+      Decision d;
+      d.set_slot_number(slot_number_);
+      d.set_allocated_command(new Command(command_));
+
+      Message m;
+      m.set_type(Message_MessageType_DECISION);
+      m.mutable_message()->PackFrom(d);
+
+      dispatch_queue_.push(std::make_pair(std::nullopt, m));
+      // TODO: kill thread 
+    }
+  } else {
+    // TODO: send preempted message
+    // TODO: kill thread 
+  }
+}
+
+bool Commander::BallotNumbersEqual(const BallotNumber& ballot1,
+                                   const BallotNumber& ballot2) {
+  return ballot1.number() == ballot2.number() &&
+      ballot1.address() == ballot2.address();
+}
+
+}  // namespace paxos

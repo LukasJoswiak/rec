@@ -10,11 +10,12 @@ message Message {
     REQUEST = 2;
     PROPOSAL = 3;
     DECISION = 4;
-    PVALUE = 5;
-    P1A = 6;
-    P1B = 7;
-    P2A = 8;
-    P2B = 9;
+    ADOPTED = 5;
+    PVALUE = 6;
+    P1A = 7;
+    P1B = 8;
+    P2A = 9;
+    P2B = 10;
   }
   MessageType type = 1;
   google.protobuf.Any message = 2;
@@ -37,6 +38,11 @@ message Decision {
   Command command = 2;
 }
 
+message Adopted {
+ BallotNumber ballot_number = 1;
+ repeated PValue accepted = 2;
+}
+
 message P1A {
   BallotNumber ballot_number = 1;
 }
@@ -47,7 +53,9 @@ message P1B {
 }
 
 message P2A {
-  PValue pvalue = 1;
+  BallotNumber ballot_number = 1;
+  int64 slot_number = 2;
+  Command command = 3;
 }
 
 message P2B {

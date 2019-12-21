@@ -18,11 +18,10 @@ class Replica : public Process {
           common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
               dispatch_queue);
 
-  virtual void Handle(Message&& message);
+  void Handle(Message&& message) override;
 
  private:
   void HandleRequest(Request&& r, const std::string& from);
-  void HandleProposal(Proposal&& r, const std::string& from);
 
   void Propose();
 

@@ -6,6 +6,7 @@
 #include <string>
 
 #include "paxos/acceptor.hpp"
+#include "paxos/leader.hpp"
 #include "paxos/replica.hpp"
 #include "paxos/shared_queue.hpp"
 #include "proto/messages.pb.h"
@@ -21,6 +22,7 @@ class Environment {
 
   void HandleReplicaMessage(const Message& m);
   void HandleAcceptorMessage(const Message& m);
+  void HandleLeaderMessage(const Message& m);
 
  private:
   // Attempts delivery of messages added to the shared queue. This function
@@ -32,10 +34,12 @@ class Environment {
 
   paxos::Replica replica_;
   paxos::Acceptor acceptor_;
+  paxos::Leader leader_;
 
   // Queues used to pass messages to threads.
   common::SharedQueue<Message> replica_queue_;
   common::SharedQueue<Message> acceptor_queue_;
+  common::SharedQueue<Message> leader_queue_;
 
   // Threads push messages onto a shared queue to enqueue them for delivery.
   // Pair consists of <optional(destination name), message>. If the destination

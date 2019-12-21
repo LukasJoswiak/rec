@@ -19,20 +19,12 @@ void Replica::Handle(Message&& message) {
     Request r;
     message.message().UnpackTo(&r);
     HandleRequest(std::move(r), message.from());
-  } else if (message.type() == Message_MessageType_PROPOSAL) {
-    Proposal p;
-    message.message().UnpackTo(&p);
-    HandleProposal(std::move(p), message.from());
   }
 }
 
 void Replica::HandleRequest(Request&& r, const std::string& from) {
   requests_.push(r);
   Propose();
-}
-
-void Replica::HandleProposal(Proposal&& r, const std::string& from) {
-  std::cout << "Received Proposal from " << from << std::endl;
 }
 
 void Replica::Propose() {

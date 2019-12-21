@@ -18,15 +18,19 @@ void Handler::Handle(const std::string& raw_message) {
 }
 
 void Handler::Handle(const Message& message) {
-  auto type = message.type();
   switch (message.type()) {
     case Message_MessageType_REQUEST:
-    case Message_MessageType_PROPOSAL:
       environment_.HandleReplicaMessage(message);
       break;
     case Message_MessageType_P1A:
     case Message_MessageType_P2A:
       environment_.HandleAcceptorMessage(message);
+      break;
+    case Message_MessageType_PROPOSAL:
+    case Message_MessageType_ADOPTED:
+    case Message_MessageType_P1B:
+    case Message_MessageType_P2B:
+      environment_.HandleLeaderMessage(message);
       break;
     default:
       break;

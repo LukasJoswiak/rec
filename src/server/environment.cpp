@@ -2,20 +2,21 @@
 
 #include "server/environment.hpp"
 
-#include "paxos/replica.hpp"
 #include "server/connection_manager.hpp"
 
 Environment::Environment(ConnectionManager& manager, std::string& server_name)
     : manager_(manager),
       server_name_(server_name),
       replica_(replica_queue_, dispatch_queue_),
-      acceptor_(acceptor_queue_, dispatch_queue_) {
+      acceptor_(acceptor_queue_, dispatch_queue_),
+      leader_(leader_queue_, dispatch_queue_, server_name) {
   // Start message handler.
   std::thread(&Environment::Dispatcher, this).detach();
 
   // Spawn Paxos handlers.
   std::thread(&paxos::Replica::Run, &replica_).detach();
   std::thread(&paxos::Acceptor::Run, &acceptor_).detach();
+  std::thread(&paxos::Leader::Run, &leader_).detach();
 }
 
 void Environment::HandleReplicaMessage(const Message& m) {
@@ -24,6 +25,10 @@ void Environment::HandleReplicaMessage(const Message& m) {
 
 void Environment::HandleAcceptorMessage(const Message& m) {
   acceptor_queue_.push(m);
+}
+
+void Environment::HandleLeaderMessage(const Message& m) {
+  leader_queue_.push(m);
 }
 
 void Environment::Dispatcher() {

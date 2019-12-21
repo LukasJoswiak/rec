@@ -17,6 +17,7 @@ class Process {
   Process(common::SharedQueue<Message>& message_queue,
           common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
               dispatch_queue);
+  virtual ~Process();
 
   // Begin handling messages.
   virtual void Run();

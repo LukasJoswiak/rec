@@ -14,6 +14,8 @@ Process::Process(
     : message_queue_(message_queue),
       dispatch_queue_(dispatch_queue) {}
 
+Process::~Process() {}
+
 void Process::Run() {
   while (1) {
     auto front = message_queue_.front();
