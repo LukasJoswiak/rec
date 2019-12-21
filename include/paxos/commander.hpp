@@ -18,6 +18,8 @@ class Commander : public Process {
           dispatch_queue,
       BallotNumber ballot_number, int slot_number, Command command);
 
+  void Run() override;
+
   void Handle(Message&& message) override;
 
  private:

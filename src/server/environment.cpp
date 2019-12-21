@@ -9,7 +9,9 @@ Environment::Environment(ConnectionManager& manager, std::string& server_name)
       server_name_(server_name),
       replica_(replica_queue_, dispatch_queue_),
       acceptor_(acceptor_queue_, dispatch_queue_),
-      leader_(leader_queue_, dispatch_queue_, server_name) {
+      leader_(leader_queue_, dispatch_queue_, server_name) {}
+
+void Environment::Start() {
   // Start message handler.
   std::thread(&Environment::Dispatcher, this).detach();
 
@@ -17,6 +19,32 @@ Environment::Environment(ConnectionManager& manager, std::string& server_name)
   std::thread(&paxos::Replica::Run, &replica_).detach();
   std::thread(&paxos::Acceptor::Run, &acceptor_).detach();
   std::thread(&paxos::Leader::Run, &leader_).detach();
+}
+
+void Environment::Handle(const std::string& raw_message) {
+  Message message;
+  message.ParseFromString(raw_message);
+  Handle(message);
+}
+
+void Environment::Handle(const Message& message) {
+  switch (message.type()) {
+    case Message_MessageType_REQUEST:
+      HandleReplicaMessage(message);
+      break;
+    case Message_MessageType_P1A:
+    case Message_MessageType_P2A:
+      HandleAcceptorMessage(message);
+      break;
+    case Message_MessageType_PROPOSAL:
+    case Message_MessageType_ADOPTED:
+    case Message_MessageType_P1B:
+    case Message_MessageType_P2B:
+      HandleLeaderMessage(message);
+      break;
+    default:
+      break;
+  }
 }
 
 void Environment::HandleReplicaMessage(const Message& m) {

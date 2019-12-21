@@ -9,7 +9,6 @@
 #include <boost/asio.hpp>
 
 #include "server/connection_manager.hpp"
-#include "server/handler.hpp"
 #include "server/tcp_connection.hpp"
 
 // TCP server implementation, handling incoming and outgoing connections.

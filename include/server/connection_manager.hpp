@@ -8,7 +8,7 @@
 #include <string>
 
 #include "proto/messages.pb.h"
-#include "server/handler.hpp"
+#include "server/environment.hpp"
 #include "server/tcp_connection.hpp"
 
 // Tracks open connections and provides message handling and delivery
@@ -41,8 +41,8 @@ class ConnectionManager {
  private:
   std::set<std::shared_ptr<TcpConnection>> connections_;
 
-  // Stores a Handler instance to parse messages and pass on messages.
-  Handler handler_;
+  // Message handler used to pass messages to appropriate location.
+  Environment environment_;
 };
 
 #endif  // INCLUDE_SERVER_CONNECTION_MANAGER_HPP_

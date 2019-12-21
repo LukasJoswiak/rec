@@ -14,17 +14,22 @@ Commander::Commander(
     : Process(message_queue, dispatch_queue),
       ballot_number_(ballot_number),
       slot_number_(slot_number),
-      command_(command) {
+      command_(command) {}
+
+void Commander::Run() {
   P2A p;    
-  p.set_allocated_ballot_number(new BallotNumber(ballot_number));
-  p.set_slot_number(slot_number);
-  p.set_allocated_command(new Command(command));
+  p.set_allocated_ballot_number(new BallotNumber(ballot_number_));
+  p.set_slot_number(slot_number_);
+  p.set_allocated_command(new Command(command_));
 
   Message m;
   m.set_type(Message_MessageType_P2A);
   m.mutable_message()->PackFrom(p);
 
   dispatch_queue_.push(std::make_pair(std::nullopt, m));
+
+  // Begin listening for incoming messages.
+  Process::Run();
 }
 
 void Commander::Handle(Message&& message) {

@@ -20,6 +20,16 @@ class Environment {
  public:
   Environment(ConnectionManager& manager, std::string& server_name);
 
+  // Call this function to spawn all processes, begin the leader election
+  // process and start listening for messages.
+  void Start();
+
+  // Parses message into appropriate message type and calls the correct handler.
+  void Handle(const std::string& raw_message);
+
+  // Parses message and calls correct handler.
+  void Handle(const Message& message);
+
   void HandleReplicaMessage(const Message& m);
   void HandleAcceptorMessage(const Message& m);
   void HandleLeaderMessage(const Message& m);

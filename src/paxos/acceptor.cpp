@@ -25,8 +25,7 @@ void Acceptor::Handle(Message&& message) {
 }
 
 void Acceptor::HandleP1A(P1A&& p, const std::string& from) {
-  std::cout << "Received P1A from " << from << std::endl;
-  if (CompareBallotNumbers(ballot_number_, p.ballot_number()) > 0) {
+  if (CompareBallotNumbers(p.ballot_number(), ballot_number_) > 0) {
     ballot_number_ = p.ballot_number();
   }
 

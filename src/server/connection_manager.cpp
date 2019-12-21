@@ -4,7 +4,7 @@
 #include "server/connection_manager.hpp"
 
 ConnectionManager::ConnectionManager(std::string& server_name)
-    : handler_(*this, server_name) {}
+    : environment_(*this, server_name) {}
 
 void ConnectionManager::Add(std::shared_ptr<TcpConnection> connection) {
   if (connections_.count(connection) != 0) {
@@ -15,6 +15,13 @@ void ConnectionManager::Add(std::shared_ptr<TcpConnection> connection) {
   connection->Start();
 
   PrintManagedConnections();
+
+  // For now, begin Paxos processes when two connections (a quorum) are active.
+  // connections_ only stores remote connections, so a size of one really means
+  // two active connections (counting the local server).
+  if (connections_.size() >= 1) {
+    environment_.Start();
+  }
 }
 
 void ConnectionManager::Remove(std::shared_ptr<TcpConnection> connection) {
@@ -41,7 +48,7 @@ void ConnectionManager::Deliver(const Message& message,
   // TODO: If the TCP connection to a remote server was dropped, don't want
   // to attempt local delivery.
   // Attempt local delivery.
-  handler_.Handle(message);
+  environment_.Handle(message);
 }
 
 void ConnectionManager::Broadcast(const Message& message) {
@@ -52,7 +59,7 @@ void ConnectionManager::Broadcast(const Message& message) {
   }
 
   // Deliver message locally in addition to sending over the network.
-  handler_.Handle(message);
+  environment_.Handle(message);
 }
 
 void ConnectionManager::Handle(const std::string& raw_message,
@@ -68,7 +75,7 @@ void ConnectionManager::Handle(const std::string& raw_message,
     std::cout << "Unknown message type from " << message.from()
               << ", dropping message..." << std::endl;
   } else {
-    handler_.Handle(message);
+    environment_.Handle(message);
   }
 }
 
