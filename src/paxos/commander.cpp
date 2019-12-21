@@ -37,7 +37,7 @@ void Commander::Handle(Message&& message) {
 
 void Commander::HandleP2B(P2B&& p, const std::string& from) {
   std::cout << "Commander received P2B from " << from << std::endl;
-  if (BallotNumbersEqual(ballot_number_, p.ballot_number())) {
+  if (CompareBallotNumbers(ballot_number_, p.ballot_number()) == 0) {
     received_from_.insert(from);
     
     // Hardcoding quorum size of 2 for now.
@@ -58,12 +58,6 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
     // TODO: send preempted message
     // TODO: kill thread 
   }
-}
-
-bool Commander::BallotNumbersEqual(const BallotNumber& ballot1,
-                                   const BallotNumber& ballot2) {
-  return ballot1.number() == ballot2.number() &&
-      ballot1.address() == ballot2.address();
 }
 
 }  // namespace paxos

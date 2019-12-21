@@ -23,10 +23,6 @@ class Commander : public Process {
  private:
   void HandleP2B(P2B&& p, const std::string& from);
 
-  // TODO: move to Process so it is available to all processes.
-  bool BallotNumbersEqual(const BallotNumber& ballot1,
-                          const BallotNumber& ballot2);
-
   std::unordered_set<std::string> received_from_;
 
   BallotNumber ballot_number_;

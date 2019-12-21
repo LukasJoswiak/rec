@@ -26,4 +26,13 @@ void Process::Run() {
   }
 }
 
+int Process::CompareBallotNumbers(const BallotNumber& b1,
+                                  const BallotNumber& b2) {
+  if (b1.number() != b2.number()) {
+    return b2.number() - b1.number();
+  } else {
+    return b1.address().compare(b2.address());
+  }
+}
+
 }  // namespace paxos

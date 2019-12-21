@@ -37,6 +37,8 @@ void Leader::Handle(Message&& message) {
     Adopted a;
     message.message().UnpackTo(&a);
     HandleAdopted(std::move(a), message.from());
+  } else if (message.type() == Message_MessageType_P1B) {
+    HandleP1B(std::move(message), message.from());
   } else if (message.type() == Message_MessageType_P2B) {
     HandleP2B(std::move(message), message.from());
   }
@@ -69,6 +71,10 @@ void Leader::HandleProposal(Proposal&& p, const std::string& from) {
 
 void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
   std::cout << "Received adopted from " << from << std::endl;
+}
+
+void Leader::HandleP1B(Message&& m, const std::string& from) {
+  scout_message_queue_.push(m);
 }
 
 void Leader::HandleP2B(Message&& m, const std::string& from) {

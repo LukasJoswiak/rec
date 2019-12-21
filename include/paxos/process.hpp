@@ -28,6 +28,11 @@ class Process {
   virtual void Handle(Message&& message) = 0;
 
  protected:
+  // Returns a negative number if b1 > b2, a positive number if b1 < b2, or
+  // zero if b1 equals b2. Ballot numbers are totally ordered and are compared
+  // first using their numbers, then using the server address for tie-breakers.
+  int CompareBallotNumbers(const BallotNumber& b1, const BallotNumber& b2);
+
   // As messages for the process are received, they are added to this queue.
   common::SharedQueue<Message>& message_queue_;
 

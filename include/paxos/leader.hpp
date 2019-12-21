@@ -28,6 +28,7 @@ class Leader : public Process {
  private:
   void HandleProposal(Proposal&& p, const std::string& from);
   void HandleAdopted(Adopted&& a, const std::string& from);
+  void HandleP1B(Message&& m, const std::string& from);
   void HandleP2B(Message&& m, const std::string& from);
 
   std::shared_ptr<paxos::Scout> scout_;

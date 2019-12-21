@@ -26,6 +26,25 @@ void Acceptor::Handle(Message&& message) {
 
 void Acceptor::HandleP1A(P1A&& p, const std::string& from) {
   std::cout << "Received P1A from " << from << std::endl;
+  if (CompareBallotNumbers(ballot_number_, p.ballot_number()) > 0) {
+    ballot_number_ = p.ballot_number();
+  }
+
+  P1B p1b;
+  p1b.set_allocated_ballot_number(new BallotNumber(ballot_number_));
+  for (const auto& pvalue : accepted_) {
+    PValue* new_pvalue = p1b.add_accepted();
+    new_pvalue->set_allocated_ballot_number(
+        new BallotNumber(pvalue.ballot_number()));
+    new_pvalue->set_slot_number(pvalue.slot_number());
+    new_pvalue->set_allocated_command(new Command(pvalue.command()));
+  }
+
+  Message m;
+  m.set_type(Message_MessageType_P1B);
+  m.mutable_message()->PackFrom(p1b);
+
+  dispatch_queue_.push(std::make_pair(from, m));
 }
 
 void Acceptor::HandleP2A(P2A&& p, const std::string& from) {
