@@ -10,9 +10,14 @@ Scout::Scout(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
-    BallotNumber& ballot_number)
+    std::string& leader, BallotNumber& ballot_number)
     : Process(message_queue, dispatch_queue),
+      leader_(leader),
       ballot_number_(ballot_number) {}
+
+Scout::~Scout() {
+  // TODO: stop thread.
+}
 
 void Scout::Run() {
   P1A p;    
@@ -37,7 +42,7 @@ void Scout::Handle(Message&& message) {
 }
 
 void Scout::HandleP1B(P1B&& p, const std::string& from) {
-  std::cout << "Received P1B from " << from << std::endl;
+  std::cout << "Scout received P1B from " << from << std::endl;
   if (CompareBallotNumbers(ballot_number_, p.ballot_number()) == 0) {
     received_from_.insert(from);
     // TODO: Check for duplicates.
@@ -62,8 +67,10 @@ void Scout::HandleP1B(P1B&& p, const std::string& from) {
       m.set_type(Message_MessageType_ADOPTED);
       m.mutable_message()->PackFrom(a);
 
-      dispatch_queue_.push(std::make_pair(from, m));
+      dispatch_queue_.push(std::make_pair(leader_, m));
     }
+  } else {
+    std::cout << "Scout preempted" << std::endl;
   }
 }
 

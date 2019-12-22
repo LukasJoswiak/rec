@@ -11,17 +11,18 @@ Leader::Leader(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
-    std::string& server_name)
+    std::string& address)
     : Process(message_queue, dispatch_queue),
+      address_(address),
       active_(false) {
   ballot_number_.set_number(0);
-  ballot_number_.set_address(server_name);
+  ballot_number_.set_address(address);
 }
 
 void Leader::Run() {
   // Spawn a scout to start leader election.
   scout_ = std::make_shared<paxos::Scout>(scout_message_queue_, dispatch_queue_,
-                                          ballot_number_);
+                                          address_, ballot_number_);
   std::thread(&paxos::Scout::Run, scout_).detach();
 
   // Begin listening for incoming messages.
@@ -74,7 +75,13 @@ void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
 }
 
 void Leader::HandleP1B(Message&& m, const std::string& from) {
-  scout_message_queue_.push(m);
+  P1B p;
+  m.message().UnpackTo(&p);
+
+  // Ensure P1B corresponds to currently active scout.
+  if (CompareBallotNumbers(scout_->ballot_number(), p.ballot_number()) == 0) {
+    scout_message_queue_.push(m);
+  }
 }
 
 void Leader::HandleP2B(Message&& m, const std::string& from) {

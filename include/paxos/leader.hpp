@@ -19,7 +19,7 @@ class Leader : public Process {
       common::SharedQueue<Message>& message_queue,
       common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
           dispatch_queue,
-      std::string& server_name);
+      std::string& address);
 
   void Run() override;
 
@@ -41,6 +41,7 @@ class Leader : public Process {
   std::unordered_map<int, std::shared_ptr<common::SharedQueue<Message>>>
       commander_message_queue_;
 
+  std::string address_;
   BallotNumber ballot_number_;
   bool active_;
   std::unordered_map<int, Command> proposals_;

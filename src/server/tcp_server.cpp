@@ -57,10 +57,8 @@ void TcpServer::HandleConnect(
     boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter,
     std::string& endpoint_name) {
   if (!connection->socket().is_open()) {
-    std::cerr << "Connect timed out" << std::endl;
     StartConnect(endpoints, ++endpoint_iter, endpoint_name);
   } else if (error) {
-    std::cerr << "Connect error: " << error.message() << std::endl;
     connection->socket().close();
     StartConnect(endpoints, ++endpoint_iter, endpoint_name);
   } else {

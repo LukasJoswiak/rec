@@ -61,6 +61,7 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
     }
   } else {
     // TODO: send preempted message
+    std::cout << "Commander preempted" << std::endl;
     // TODO: kill thread 
   }
 }

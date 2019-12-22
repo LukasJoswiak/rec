@@ -17,15 +17,21 @@ class Scout : public Process {
       common::SharedQueue<Message>& message_queue,
       common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
           dispatch_queue,
-      BallotNumber& ballot_number);
+      std::string& leader, BallotNumber& ballot_number);
+  ~Scout() override;
 
   void Run() override;
 
   void Handle(Message&& message) override;
 
+  BallotNumber& ballot_number() {
+    return ballot_number_;
+  }
+
  private:
   void HandleP1B(P1B&& p, const std::string& from);
 
+  std::string leader_;
   BallotNumber ballot_number_;
   std::deque<PValue> pvalues_;
   std::unordered_set<std::string> received_from_;
