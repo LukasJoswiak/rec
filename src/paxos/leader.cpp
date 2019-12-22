@@ -53,19 +53,7 @@ void Leader::HandleProposal(Proposal&& p, const std::string& from) {
     if (active_) {
       assert(commander_message_queue_.find(slot_number) ==
           commander_message_queue_.end());
-
-      // Create a SharedQueue for the commander to allow passing of messages to
-      // it.
-      std::cout << "Creating commander queue at slot " << slot_number << std::endl;
-      commander_message_queue_[slot_number] =
-          std::make_shared<common::SharedQueue<Message>>();
-
-      // Create a commander and run it on its own thread.
-      commanders_.emplace(slot_number,
-          Commander(*commander_message_queue_[slot_number], dispatch_queue_,
-                    ballot_number_, slot_number, p.command()));
-      std::thread(&paxos::Commander::Run, &commanders_.at(slot_number))
-          .detach();
+      SpawnCommander(slot_number, p.command());
     }
   }
 }
@@ -73,7 +61,28 @@ void Leader::HandleProposal(Proposal&& p, const std::string& from) {
 void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
   std::cout << "Received adopted from " << from << std::endl;
   if (CompareBallotNumbers(ballot_number_, a.ballot_number()) == 0) {
+    // Map of slot number -> ballot, used to determine the command to propose
+    // for each slot.
+    std::unordered_map<int, BallotNumber> max_ballots;
+    for (int i = 0; i < a.accepted_size(); ++i) {
+      PValue pvalue = a.accepted(i);
+      if (max_ballots.find(pvalue.slot_number()) == max_ballots.end() ||
+          CompareBallotNumbers(max_ballots.at(pvalue.slot_number()),
+                               pvalue.ballot_number()) > 0) {
+        max_ballots[pvalue.slot_number()] = pvalue.ballot_number();
+        proposals_[pvalue.slot_number()] = pvalue.command();
+      }
+    }
 
+    // Propose all commands that have been accepted by other servers.
+    for (const auto& it : proposals_) {
+      int slot_number = it.first;
+      Command command = it.second;
+
+      SpawnCommander(slot_number, command);
+    }
+
+    active_ = true;
   }
 }
 
@@ -92,6 +101,20 @@ void Leader::HandleP2B(Message&& m, const std::string& from) {
 
   auto commander_queue = commander_message_queue_.at(slot_number);
   commander_queue->push(m);
+}
+
+void Leader::SpawnCommander(int slot_number, Command command) {
+  std::cout << "Spawning commander for slot number " << slot_number << std::endl;
+  // Create a SharedQueue for the commander to allow passing of messages to it.
+  commander_message_queue_[slot_number] =
+      std::make_shared<common::SharedQueue<Message>>();
+
+  // Create a commander and run it on its own thread.
+  commanders_.emplace(slot_number,
+      Commander(*commander_message_queue_[slot_number], dispatch_queue_,
+                ballot_number_, slot_number, command));
+  std::thread(&paxos::Commander::Run, &commanders_.at(slot_number))
+      .detach();
 }
 
 }  // namespace paxos

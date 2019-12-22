@@ -10,7 +10,7 @@ Commander::Commander(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
-    BallotNumber ballot_number, int slot_number, Command command)
+    BallotNumber& ballot_number, int slot_number, Command& command)
     : Process(message_queue, dispatch_queue),
       ballot_number_(ballot_number),
       slot_number_(slot_number),

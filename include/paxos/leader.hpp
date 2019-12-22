@@ -31,6 +31,10 @@ class Leader : public Process {
   void HandleP1B(Message&& m, const std::string& from);
   void HandleP2B(Message&& m, const std::string& from);
 
+  // Spawns and runs a commander on a thread for the given slot number and
+  // command.
+  void SpawnCommander(int slot_number, Command command);
+
   std::shared_ptr<paxos::Scout> scout_;
   common::SharedQueue<Message> scout_message_queue_;
 
@@ -44,6 +48,8 @@ class Leader : public Process {
   std::string address_;
   BallotNumber ballot_number_;
   bool active_;
+
+  // Map of slot number -> Command proposed for the slot.
   std::unordered_map<int, Command> proposals_;
 };
 
