@@ -16,6 +16,10 @@ Commander::Commander(
       slot_number_(slot_number),
       command_(command) {}
 
+Commander::~Commander() {
+  exit_ = true;
+}
+
 void Commander::Run() {
   P2A p;    
   p.set_allocated_ballot_number(new BallotNumber(ballot_number_));
@@ -57,12 +61,12 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
       m.mutable_message()->PackFrom(d);
 
       dispatch_queue_.push(std::make_pair(std::nullopt, m));
-      // TODO: kill thread 
+      exit_ = true;
     }
   } else {
     // TODO: send preempted message
     std::cout << "Commander preempted" << std::endl;
-    // TODO: kill thread 
+    exit_ = true;
   }
 }
 

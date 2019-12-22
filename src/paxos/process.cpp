@@ -23,6 +23,10 @@ void Process::Run() {
 
     // Call handler in derived class.
     Handle(std::move(front));
+
+    if (exit_) {
+      return;
+    }
   }
 }
 

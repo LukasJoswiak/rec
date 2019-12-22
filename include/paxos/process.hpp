@@ -39,6 +39,9 @@ class Process {
   // Messages added to this queue will be delivered to the appropriate server.
   common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
       dispatch_queue_;
+
+  // Set to true to tell the process to exit.
+  bool exit_;
 };
 
 }  // namespace paxos

@@ -72,16 +72,13 @@ void Leader::HandleProposal(Proposal&& p, const std::string& from) {
 
 void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
   std::cout << "Received adopted from " << from << std::endl;
+  if (CompareBallotNumbers(ballot_number_, a.ballot_number()) == 0) {
+
+  }
 }
 
 void Leader::HandleP1B(Message&& m, const std::string& from) {
-  P1B p;
-  m.message().UnpackTo(&p);
-
-  // Ensure P1B corresponds to currently active scout.
-  if (CompareBallotNumbers(scout_->ballot_number(), p.ballot_number()) == 0) {
-    scout_message_queue_.push(m);
-  }
+  scout_message_queue_.push(m);
 }
 
 void Leader::HandleP2B(Message&& m, const std::string& from) {

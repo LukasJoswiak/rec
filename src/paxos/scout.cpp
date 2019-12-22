@@ -16,7 +16,7 @@ Scout::Scout(
       ballot_number_(ballot_number) {}
 
 Scout::~Scout() {
-  // TODO: stop thread.
+  exit_ = true;
 }
 
 void Scout::Run() {
@@ -68,9 +68,11 @@ void Scout::HandleP1B(P1B&& p, const std::string& from) {
       m.mutable_message()->PackFrom(a);
 
       dispatch_queue_.push(std::make_pair(leader_, m));
+      exit_ = true;
     }
   } else {
     std::cout << "Scout preempted" << std::endl;
+    exit_ = true;
   }
 }
 

@@ -38,8 +38,6 @@ void TcpServer::StartConnect(
     boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter,
     std::string& endpoint_name) {
   if (endpoint_iter != endpoints.end()) {
-    std::cout << "Connecting to " << endpoint_iter->endpoint() << std::endl;
-
     std::shared_ptr<TcpConnection> connection = TcpConnection::Create(
         io_context_, connection_manager_, endpoint_name);
     connection->socket().async_connect(endpoint_iter->endpoint(),
