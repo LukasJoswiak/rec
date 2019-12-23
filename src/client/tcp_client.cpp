@@ -6,8 +6,9 @@
 
 #include "proto/messages.pb.h"
 
-TcpClient::TcpClient(boost::asio::io_context& io_context)
-    : socket_(io_context) {}
+TcpClient::TcpClient(boost::asio::io_context& io_context, std::string&& name)
+    : socket_(io_context),
+      name_(name) {}
 
 void TcpClient::Start(boost::asio::ip::tcp::resolver::results_type endpoints) {
   endpoints_ = endpoints;
@@ -44,18 +45,18 @@ void TcpClient::HandleConnect(
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
 
     auto c = new Command();
-    c->set_client("client1");
+    c->set_client(name_);
     c->set_sequence_number(1);
     c->set_operation(0);
 
     Request r;
     r.set_allocated_command(c);
-    r.set_source("client1");
+    r.set_source(name_);
 
     Message m;
     m.set_type(Message_MessageType_REQUEST);
     m.mutable_message()->PackFrom(r);
-    m.set_from("client1");
+    m.set_from(name_);
 
     std::string serialized;
     m.SerializeToString(&serialized);

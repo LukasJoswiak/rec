@@ -45,9 +45,8 @@ void Scout::HandleP1B(P1B&& p, const std::string& from) {
   std::cout << "Scout received P1B from " << from << std::endl;
   if (CompareBallotNumbers(ballot_number_, p.ballot_number()) == 0) {
     received_from_.insert(from);
-    // TODO: Check for duplicates.
     for (int i = 0; i < p.accepted_size(); ++i) {
-      pvalues_.push_back(p.accepted(i));
+      pvalues_.insert(p.accepted(i));
     }
 
     // TODO: don't hardcode quorum size.

@@ -4,6 +4,8 @@
 
 #include <optional>
 
+#include "google/protobuf/util/message_differencer.h"
+
 namespace paxos {
 
 Replica::Replica(
@@ -40,8 +42,9 @@ void Replica::HandleDecision(Decision&& d, const std::string& from) {
       // If this replica proposed a different command than the one that was
       // chosen, add the command to the end of the list of proposals so it will
       // be retried.
-      if (!CommandsEqual(proposals_[slot_out_].command(),
-                         decisions_[slot_out_])) {
+      if (!google::protobuf::util::MessageDifferencer::Equals(
+            proposals_[slot_out_].command(),
+            decisions_[slot_out_])) {
         requests_.push(proposals_[slot_out_]);
       }
 
@@ -80,11 +83,6 @@ void Replica::Propose() {
       ++slot_in_;
     }
   }
-}
-
-bool Replica::CommandsEqual(const Command& c1, const Command& c2) {
-  return c1.sequence_number() == c2.sequence_number() &&
-      c1.operation() == c2.operation();
 }
 
 }  // namespace paxos

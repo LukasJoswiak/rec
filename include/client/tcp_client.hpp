@@ -9,7 +9,7 @@
 
 class TcpClient {
  public:
-  explicit TcpClient(boost::asio::io_context& io_context);
+  explicit TcpClient(boost::asio::io_context& io_context, std::string&& name);
 
   // Starts the client and attempts to open a connection using the given
   // endpoints.
@@ -45,6 +45,8 @@ class TcpClient {
   boost::asio::ip::tcp::socket socket_;
   boost::asio::ip::tcp::resolver::results_type endpoints_;
   std::string input_buffer_;
+
+  std::string name_;
 };
 
 #endif  // INCLUDE_CLIENT_TCP_CLIENT_HPP_

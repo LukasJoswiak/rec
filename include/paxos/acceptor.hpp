@@ -3,10 +3,11 @@
 #ifndef INCLUDE_PAXOS_ACCEPTOR_HPP_
 #define INCLUDE_PAXOS_ACCEPTOR_HPP_
 
-#include <deque>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
+#include "paxos/compare.hpp"
 #include "paxos/process.hpp"
 #include "proto/messages.pb.h"
 
@@ -26,7 +27,7 @@ class Acceptor : public Process {
   void HandleP2A(P2A&& p, const std::string& from);
 
   BallotNumber ballot_number_;
-  std::deque<PValue> accepted_;
+  std::unordered_set<PValue, PValueHash, PValueEqualTo> accepted_;
 };
 
 }  // namespace paxos

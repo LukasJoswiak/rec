@@ -3,11 +3,11 @@
 #ifndef INCLUDE_PAXOS_SCOUT_HPP_
 #define INCLUDE_PAXOS_SCOUT_HPP_
 
-#include <deque>
 #include <string>
 #include <unordered_set>
 #include <utility>
 
+#include "paxos/compare.hpp"
 #include "paxos/process.hpp"
 #include "proto/messages.pb.h"
 
@@ -35,7 +35,7 @@ class Scout : public Process {
 
   std::string leader_;
   BallotNumber ballot_number_;
-  std::deque<PValue> pvalues_;
+  std::unordered_set<PValue, PValueHash, PValueEqualTo> pvalues_;
   std::unordered_set<std::string> received_from_;
 };
 

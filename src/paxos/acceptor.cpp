@@ -32,6 +32,7 @@ void Acceptor::HandleP1A(P1A&& p, const std::string& from) {
 
   P1B p1b;
   p1b.set_allocated_ballot_number(new BallotNumber(ballot_number_));
+  p1b.clear_accepted();
   for (const auto& pvalue : accepted_) {
     PValue* new_pvalue = p1b.add_accepted();
     new_pvalue->set_allocated_ballot_number(
@@ -55,9 +56,7 @@ void Acceptor::HandleP2A(P2A&& p, const std::string& from) {
     pvalue.set_slot_number(p.slot_number());
     pvalue.set_allocated_command(new Command(p.command()));
 
-    // TODO: check for duplicates. Would be better to use a set to store
-    // PValue's. Investigate using protobuf object types in sets.
-    accepted_.push_back(pvalue);
+    accepted_.emplace(pvalue);
   }
 
   P2B p2b;

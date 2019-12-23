@@ -27,9 +27,6 @@ class Replica : public Process {
 
   void Propose();
 
-  // Given two commands, returns true if they are equal.
-  bool CommandsEqual(const Command& c1, const Command& c2);
-
   int slot_in_;
   int slot_out_;
   std::queue<Request> requests_;
