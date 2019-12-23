@@ -4,7 +4,9 @@
 #define INCLUDE_PAXOS_LEADER_HPP_
 
 #include <memory>
+#include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "paxos/commander.hpp"
 #include "paxos/process.hpp"

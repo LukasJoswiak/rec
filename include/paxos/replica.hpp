@@ -3,9 +3,10 @@
 #ifndef INCLUDE_PAXOS_REPLICA_HPP_
 #define INCLUDE_PAXOS_REPLICA_HPP_
 
+#include <queue>
 #include <string>
 #include <unordered_map>
-#include <queue>
+#include <utility>
 
 #include "paxos/process.hpp"
 #include "proto/messages.pb.h"
@@ -22,14 +23,18 @@ class Replica : public Process {
 
  private:
   void HandleRequest(Request&& r, const std::string& from);
+  void HandleDecision(Decision&& d, const std::string& from);
 
   void Propose();
+
+  // Given two commands, returns true if they are equal.
+  bool CommandsEqual(const Command& c1, const Command& c2);
 
   int slot_in_;
   int slot_out_;
   std::queue<Request> requests_;
-  std::unordered_map<int, Proposal> proposals_;
-  std::unordered_map<int, Decision> decisions_;
+  std::unordered_map<int, Request> proposals_;
+  std::unordered_map<int, Command> decisions_;
 };
 
 }  // namespace paxos

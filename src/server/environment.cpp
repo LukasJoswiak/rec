@@ -30,6 +30,7 @@ void Environment::Handle(const std::string& raw_message) {
 void Environment::Handle(const Message& message) {
   switch (message.type()) {
     case Message_MessageType_REQUEST:
+    case Message_MessageType_DECISION:
       HandleReplicaMessage(message);
       break;
     case Message_MessageType_P1A:

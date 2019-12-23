@@ -4,7 +4,9 @@
 #define INCLUDE_PAXOS_SCOUT_HPP_
 
 #include <deque>
+#include <string>
 #include <unordered_set>
+#include <utility>
 
 #include "paxos/process.hpp"
 #include "proto/messages.pb.h"

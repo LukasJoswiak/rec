@@ -12,7 +12,8 @@ Process::Process(
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue)
     : message_queue_(message_queue),
-      dispatch_queue_(dispatch_queue) {}
+      dispatch_queue_(dispatch_queue),
+      exit_(false) {}
 
 Process::~Process() {}
 

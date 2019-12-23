@@ -4,6 +4,7 @@
 #define INCLUDE_SERVER_ENVIRONMENT_HPP_
 
 #include <string>
+#include <utility>
 
 #include "paxos/acceptor.hpp"
 #include "paxos/leader.hpp"

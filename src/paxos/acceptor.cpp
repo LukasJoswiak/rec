@@ -49,6 +49,26 @@ void Acceptor::HandleP1A(P1A&& p, const std::string& from) {
 
 void Acceptor::HandleP2A(P2A&& p, const std::string& from) {
   std::cout << "Received P2A from " << from << std::endl;
+  if (CompareBallotNumbers(ballot_number_, p.ballot_number()) == 0) {
+    PValue pvalue;
+    pvalue.set_allocated_ballot_number(new BallotNumber(p.ballot_number()));
+    pvalue.set_slot_number(p.slot_number());
+    pvalue.set_allocated_command(new Command(p.command()));
+
+    // TODO: check for duplicates. Would be better to use a set to store
+    // PValue's. Investigate using protobuf object types in sets.
+    accepted_.push_back(pvalue);
+  }
+
+  P2B p2b;
+  p2b.set_allocated_ballot_number(new BallotNumber(ballot_number_));
+  p2b.set_slot_number(p.slot_number());
+
+  Message m;
+  m.set_type(Message_MessageType_P2B);
+  m.mutable_message()->PackFrom(p2b);
+
+  dispatch_queue_.push(std::make_pair(from, m));
 }
 
 }  // namespace paxos

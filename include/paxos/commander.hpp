@@ -3,7 +3,9 @@
 #ifndef INCLUDE_PAXOS_COMMANDER_HPP_
 #define INCLUDE_PAXOS_COMMANDER_HPP_
 
+#include <string>
 #include <unordered_set>
+#include <utility>
 
 #include "paxos/process.hpp"
 #include "proto/messages.pb.h"

@@ -21,7 +21,7 @@ Commander::~Commander() {
 }
 
 void Commander::Run() {
-  P2A p;    
+  P2A p;
   p.set_allocated_ballot_number(new BallotNumber(ballot_number_));
   p.set_slot_number(slot_number_);
   p.set_allocated_command(new Command(command_));
@@ -30,6 +30,7 @@ void Commander::Run() {
   m.set_type(Message_MessageType_P2A);
   m.mutable_message()->PackFrom(p);
 
+  std::cout << "Sending P2As" << std::endl;
   dispatch_queue_.push(std::make_pair(std::nullopt, m));
 
   // Begin listening for incoming messages.
@@ -48,7 +49,7 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
   std::cout << "Commander received P2B from " << from << std::endl;
   if (CompareBallotNumbers(ballot_number_, p.ballot_number()) == 0) {
     received_from_.insert(from);
-    
+
     // Hardcoding quorum size of 2 for now.
     // TODO: modify quorum size to be configurable.
     if (received_from_.size() >= 2) {

@@ -3,6 +3,9 @@
 #ifndef INCLUDE_PAXOS_PROCESS_HPP_
 #define INCLUDE_PAXOS_PROCESS_HPP_
 
+#include <string>
+#include <utility>
+
 #include "paxos/shared_queue.hpp"
 
 #include "proto/messages.pb.h"

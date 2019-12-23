@@ -95,7 +95,6 @@ void Leader::HandleP2B(Message&& m, const std::string& from) {
   P2B p;
   m.message().UnpackTo(&p);
   int slot_number = p.slot_number();
-  std::cout << "Handle P2B for slot " << slot_number << std::endl;
   assert(commander_message_queue_.find(slot_number) !=
       commander_message_queue_.end());
 
@@ -104,7 +103,8 @@ void Leader::HandleP2B(Message&& m, const std::string& from) {
 }
 
 void Leader::SpawnCommander(int slot_number, Command command) {
-  std::cout << "Spawning commander for slot number " << slot_number << std::endl;
+  std::cout << "Spawning commander for slot number " << slot_number
+            << std::endl;
   // Create a SharedQueue for the commander to allow passing of messages to it.
   commander_message_queue_[slot_number] =
       std::make_shared<common::SharedQueue<Message>>();

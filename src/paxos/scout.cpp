@@ -20,7 +20,7 @@ Scout::~Scout() {
 }
 
 void Scout::Run() {
-  P1A p;    
+  P1A p;
   p.set_allocated_ballot_number(new BallotNumber(ballot_number_));
 
   Message m;
@@ -54,7 +54,7 @@ void Scout::HandleP1B(P1B&& p, const std::string& from) {
     if (received_from_.size() >= 2) {
       Adopted a;
       a.set_allocated_ballot_number(new BallotNumber(ballot_number_));
-      
+
       for (const auto& pvalue : pvalues_) {
         PValue* new_pvalue = a.add_accepted();
         new_pvalue->set_allocated_ballot_number(
