@@ -51,8 +51,7 @@ void Replica::HandleDecision(Decision&& d, const std::string& from) {
       proposals_.erase(slot_out_);
     }
 
-    std::cout << "Executing command for slot " << slot_out_ << std::endl;
-    ++slot_out_;
+    Execute(d.command());
   }
 }
 
@@ -83,6 +82,21 @@ void Replica::Propose() {
       ++slot_in_;
     }
   }
+}
+
+void Replica::Execute(const Command& command) {
+  for (int i = 1; i < slot_out_; ++i) {
+    if (google::protobuf::util::MessageDifferencer::Equals(decisions_.at(i),
+                                                           command)) {
+      std::cout << "Already executed command at slot " << i
+                << ", performing no-op" << std::endl;
+      ++slot_out_;
+      return;
+    }
+  }
+
+  std::cout << "Executing command for slot " << slot_out_ << std::endl;
+  ++slot_out_;
 }
 
 }  // namespace paxos

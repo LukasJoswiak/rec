@@ -27,6 +27,10 @@ class Replica : public Process {
 
   void Propose();
 
+  // Executes the given command at slot number slot_out_, or performs a no-op
+  // if the command has already been executed.
+  void Execute(const Command& command);
+
   int slot_in_;
   int slot_out_;
   std::queue<Request> requests_;

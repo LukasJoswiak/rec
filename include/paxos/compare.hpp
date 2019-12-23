@@ -11,7 +11,7 @@
 namespace paxos {
 
 // Custom hash and equals function for the PValue message. Used to enable PValue
-// usage in unordered standard library containers.
+// inclusion in standard library unordered containers.
 
 struct PValueHash {
   std::size_t operator()(const PValue& pvalue) const noexcept {
