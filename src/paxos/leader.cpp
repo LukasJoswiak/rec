@@ -38,6 +38,10 @@ void Leader::Handle(Message&& message) {
     Adopted a;
     message.message().UnpackTo(&a);
     HandleAdopted(std::move(a), message.from());
+  } else if (message.type() == Message_MessageType_PREEMPTED) {
+    Preempted p;
+    message.message().UnpackTo(&p);
+    HandlePreempted(std::move(p), message.from());
   } else if (message.type() == Message_MessageType_P1B) {
     HandleP1B(std::move(message), message.from());
   } else if (message.type() == Message_MessageType_P2B) {
@@ -86,6 +90,19 @@ void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
   }
 }
 
+void Leader::HandlePreempted(Preempted&& p, const std::string& from) {
+  std::cout << "Received preempted from " << from << std::endl;
+  if (CompareBallotNumbers(ballot_number_, p.ballot_number()) > 0) {
+    ballot_number_.set_number(ballot_number_.number() + 1);
+
+    // Spawn a new scout to begin leader election with updated ballot.
+    scout_ = std::make_shared<paxos::Scout>(scout_message_queue_, dispatch_queue_,
+                                            address_, ballot_number_);
+    std::thread(&paxos::Scout::Run, scout_).detach();
+  }
+  active_ = false;
+}
+
 void Leader::HandleP1B(Message&& m, const std::string& from) {
   scout_message_queue_.push(m);
 }
@@ -112,7 +129,7 @@ void Leader::SpawnCommander(int slot_number, Command command) {
   // Create a commander and run it on its own thread.
   commanders_.emplace(slot_number,
       Commander(*commander_message_queue_[slot_number], dispatch_queue_,
-                ballot_number_, slot_number, command));
+                address_, ballot_number_, slot_number, command));
   std::thread(&paxos::Commander::Run, &commanders_.at(slot_number))
       .detach();
 }

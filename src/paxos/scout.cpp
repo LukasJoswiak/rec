@@ -71,6 +71,14 @@ void Scout::HandleP1B(P1B&& p, const std::string& from) {
     }
   } else {
     std::cout << "Scout preempted" << std::endl;
+    Preempted p;
+    p.set_allocated_ballot_number(new BallotNumber(p.ballot_number()));
+
+    Message m;
+    m.set_type(Message_MessageType_PREEMPTED);
+    m.mutable_message()->PackFrom(p);
+
+    dispatch_queue_.push(std::make_pair(leader_, m));
     exit_ = true;
   }
 }

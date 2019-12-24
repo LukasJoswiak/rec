@@ -39,6 +39,7 @@ void Environment::Handle(const Message& message) {
       break;
     case Message_MessageType_PROPOSAL:
     case Message_MessageType_ADOPTED:
+    case Message_MessageType_PREEMPTED:
     case Message_MessageType_P1B:
     case Message_MessageType_P2B:
       HandleLeaderMessage(message);

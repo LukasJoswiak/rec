@@ -10,8 +10,10 @@ Commander::Commander(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
-    BallotNumber& ballot_number, int slot_number, Command& command)
+    std::string& leader, BallotNumber& ballot_number, int slot_number,
+    Command& command)
     : Process(message_queue, dispatch_queue),
+      leader_(leader),
       ballot_number_(ballot_number),
       slot_number_(slot_number),
       command_(command) {}
@@ -65,8 +67,15 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
       exit_ = true;
     }
   } else {
-    // TODO: send preempted message
     std::cout << "Commander preempted" << std::endl;
+    Preempted p;
+    p.set_allocated_ballot_number(new BallotNumber(p.ballot_number()));
+
+    Message m;
+    m.set_type(Message_MessageType_PREEMPTED);
+    m.mutable_message()->PackFrom(p);
+
+    dispatch_queue_.push(std::make_pair(leader_, m));
     exit_ = true;
   }
 }

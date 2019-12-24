@@ -18,7 +18,8 @@ class Commander : public Process {
       common::SharedQueue<Message>& message_queue,
       common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
           dispatch_queue,
-      BallotNumber& ballot_number, int slot_number, Command& command);
+      std::string& leader, BallotNumber& ballot_number, int slot_number,
+      Command& command);
   ~Commander() override;
 
   void Run() override;
@@ -30,6 +31,7 @@ class Commander : public Process {
 
   std::unordered_set<std::string> received_from_;
 
+  std::string leader_;
   BallotNumber ballot_number_;
   int slot_number_;
   Command command_;

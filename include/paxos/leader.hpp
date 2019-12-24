@@ -30,6 +30,9 @@ class Leader : public Process {
  private:
   void HandleProposal(Proposal&& p, const std::string& from);
   void HandleAdopted(Adopted&& a, const std::string& from);
+  void HandlePreempted(Preempted&& p, const std::string& from);
+
+  // Handlers used to pass messages on to scout or commander.
   void HandleP1B(Message&& m, const std::string& from);
   void HandleP2B(Message&& m, const std::string& from);
 
