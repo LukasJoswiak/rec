@@ -44,7 +44,7 @@ class TcpClient {
 
   boost::asio::ip::tcp::socket socket_;
   boost::asio::ip::tcp::resolver::results_type endpoints_;
-  std::string input_buffer_;
+  boost::asio::streambuf input_buffer_;
 
   std::string name_;
 };

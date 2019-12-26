@@ -67,18 +67,21 @@ void TcpClient::HandleConnect(
 }
 
 void TcpClient::StartRead() {
-  boost::asio::async_read_until(socket_,
-                                boost::asio::dynamic_buffer(input_buffer_),
-                                '\n', std::bind(&TcpClient::HandleRead, this,
-                                                std::placeholders::_1,
-                                                std::placeholders::_2));
+  boost::asio::async_read(socket_, input_buffer_,
+                          boost::asio::transfer_at_least(1),
+                          std::bind(&TcpClient::HandleRead, this,
+                                    std::placeholders::_1,
+                                    std::placeholders::_2));
 }
 
 void TcpClient::HandleRead(const boost::system::error_code& error,
                            std::size_t bytes_transferred) {
   if (!error) {
-    std::cout << "Received line: " << input_buffer_ << std::endl;
-    input_buffer_.erase();
+    std::string message(
+        boost::asio::buffers_begin(input_buffer_.data()),
+        boost::asio::buffers_begin(input_buffer_.data()) + bytes_transferred);
+    input_buffer_.consume(bytes_transferred);
+    std::cout << "Received message: " << message << std::endl;
 
     StartRead();
   } else {

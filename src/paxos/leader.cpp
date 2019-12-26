@@ -96,8 +96,9 @@ void Leader::HandlePreempted(Preempted&& p, const std::string& from) {
     ballot_number_.set_number(ballot_number_.number() + 1);
 
     // Spawn a new scout to begin leader election with updated ballot.
-    scout_ = std::make_shared<paxos::Scout>(scout_message_queue_, dispatch_queue_,
-                                            address_, ballot_number_);
+    scout_ = std::make_shared<paxos::Scout>(scout_message_queue_,
+                                            dispatch_queue_, address_,
+                                            ballot_number_);
     std::thread(&paxos::Scout::Run, scout_).detach();
   }
   active_ = false;

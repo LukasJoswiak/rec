@@ -33,8 +33,8 @@ class Replica : public Process {
 
   int slot_in_;
   int slot_out_;
-  std::queue<Request> requests_;
-  std::unordered_map<int, Request> proposals_;
+  std::queue<Command> requests_;
+  std::unordered_map<int, Command> proposals_;
   std::unordered_map<int, Command> decisions_;
 };
 

@@ -43,12 +43,12 @@ void TcpConnection::StartRead() {
 void TcpConnection::HandleRead(const boost::system::error_code& error,
                                std::size_t bytes_transferred) {
   if (!error) {
-    std::string line(
+    std::string message(
         boost::asio::buffers_begin(input_buffer_.data()),
         boost::asio::buffers_begin(input_buffer_.data()) + bytes_transferred);
     input_buffer_.consume(bytes_transferred);
 
-    manager_.Handle(line, shared_from_this());
+    manager_.Handle(message, shared_from_this());
 
     StartRead();
   } else {

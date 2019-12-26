@@ -17,10 +17,20 @@ class ConnectionManager {
  public:
   explicit ConnectionManager(std::string& server_name);
 
-  // Adds connection to managed connections; starts connection.
-  void Add(std::shared_ptr<TcpConnection> connection);
+  // Starts tracking a client connection.
+  void AddClient(std::shared_ptr<TcpConnection> connection);
 
-  // Removes connection from managed connections.
+  // Stops tracking a client connection.
+  void RemoveClient(std::shared_ptr<TcpConnection> connection);
+
+  // Starts tracking a server connection; starts the connection.
+  void AddServer(std::shared_ptr<TcpConnection> connection);
+
+  // Stops tracking a server connection.
+  void RemoveServer(std::shared_ptr<TcpConnection> connection);
+
+  // Stops tracking a connection. Attempts to remove from both client and server
+  // connection pools.
   void Remove(std::shared_ptr<TcpConnection> connection);
 
   // Attempts delivery of the message to the given endpoint. Endpoint must be an
@@ -28,7 +38,7 @@ class ConnectionManager {
   // server so message can be handled locally.
   void Deliver(const Message& message, const std::string& endpoint);
 
-  // Attempts delivery of the message to all known endpoints.
+  // Attempts delivery of the message to all known server endpoints.
   void Broadcast(const Message& message);
 
   // Passes message to handler.
@@ -39,7 +49,8 @@ class ConnectionManager {
   void PrintManagedConnections();
 
  private:
-  std::set<std::shared_ptr<TcpConnection>> connections_;
+  std::set<std::shared_ptr<TcpConnection>> clients_;
+  std::set<std::shared_ptr<TcpConnection>> servers_;
 
   // Message handler used to pass messages to appropriate location.
   Environment environment_;

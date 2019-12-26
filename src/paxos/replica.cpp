@@ -29,7 +29,7 @@ void Replica::Handle(Message&& message) {
 }
 
 void Replica::HandleRequest(Request&& r, const std::string& from) {
-  requests_.push(r);
+  requests_.push(r.command());
   Propose();
 }
 
@@ -43,7 +43,7 @@ void Replica::HandleDecision(Decision&& d, const std::string& from) {
       // chosen, add the command to the end of the list of proposals so it will
       // be retried.
       if (!google::protobuf::util::MessageDifferencer::Equals(
-            proposals_[slot_out_].command(),
+            proposals_[slot_out_],
             decisions_[slot_out_])) {
         requests_.push(proposals_[slot_out_]);
       }
@@ -58,17 +58,14 @@ void Replica::HandleDecision(Decision&& d, const std::string& from) {
 void Replica::Propose() {
   while (!requests_.empty()) {
     if (decisions_.find(slot_in_) == decisions_.end()) {
-      auto request = requests_.front();
+      auto command = requests_.front();
       requests_.pop();
 
-      proposals_[slot_in_] = request;
-
-      // Take ownership of the command object.
-      auto command = request.release_command();
+      proposals_[slot_in_] = command;
 
       Proposal proposal;
       proposal.set_slot_number(slot_in_);
-      proposal.set_allocated_command(command);
+      proposal.set_allocated_command(new Command(command));
 
       Message m;
       m.set_type(Message_MessageType_PROPOSAL);
@@ -96,6 +93,17 @@ void Replica::Execute(const Command& command) {
   }
 
   std::cout << "Executing command for slot " << slot_out_ << std::endl;
+
+  Response r;
+  r.set_value("test");
+
+  Message m;
+  m.set_type(Message_MessageType_RESPONSE);
+  m.mutable_message()->PackFrom(r);
+
+  std::cout << "Sending response to " << command.client() << std::endl;
+  dispatch_queue_.push(std::make_pair(command.client(), m));
+
   ++slot_out_;
 }
 

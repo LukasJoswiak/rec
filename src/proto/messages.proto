@@ -8,15 +8,16 @@ message Message {
     UNKNOWN = 0;
     HEARTBEAT = 1;
     REQUEST = 2;
-    PROPOSAL = 3;
-    DECISION = 4;
-    ADOPTED = 5;
-    PREEMPTED = 6;
-    PVALUE = 7;
-    P1A = 8;
-    P1B = 9;
-    P2A = 10;
-    P2B = 11;
+    RESPONSE = 3;
+    PROPOSAL = 4;
+    DECISION = 5;
+    ADOPTED = 6;
+    PREEMPTED = 7;
+    PVALUE = 8;
+    P1A = 9;
+    P1B = 10;
+    P2A = 11;
+    P2B = 12;
   }
   MessageType type = 1;
   google.protobuf.Any message = 2;
@@ -27,6 +28,10 @@ message Request {
   Command command = 1;
   // Address of the originator of the request.
   string source = 2;
+}
+
+message Response {
+  string value = 1;
 }
 
 message Proposal {

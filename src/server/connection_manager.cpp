@@ -6,39 +6,76 @@
 ConnectionManager::ConnectionManager(std::string& server_name)
     : environment_(*this, server_name) {}
 
-void ConnectionManager::Add(std::shared_ptr<TcpConnection> connection) {
-  if (connections_.count(connection) != 0) {
+void ConnectionManager::AddClient(std::shared_ptr<TcpConnection> connection) {
+  if (clients_.count(connection) != 0) {
     return;
   }
 
-  connections_.insert(connection);
+  clients_.insert(connection);
+
+  PrintManagedConnections();
+}
+
+void ConnectionManager::RemoveClient(
+    std::shared_ptr<TcpConnection> connection) {
+  auto it = clients_.find(connection);
+  if (it == clients_.end()) {
+    return;
+  }
+  clients_.erase(it);
+
+  PrintManagedConnections();
+}
+
+void ConnectionManager::AddServer(std::shared_ptr<TcpConnection> connection) {
+  if (servers_.count(connection) != 0) {
+    return;
+  }
+
+  servers_.insert(connection);
   connection->Start();
 
   PrintManagedConnections();
 
   // For now, begin Paxos processes when two connections (a quorum) are active.
-  // connections_ only stores remote connections, so a size of one really means
-  // two active connections (counting the local server).
-  if (connections_.size() >= 1) {
+  // servers_ only stores remote connections, so a size of one really means two
+  // active connections (counting the local server).
+  if (servers_.size() >= 1) {
     environment_.Start();
   }
 }
 
-void ConnectionManager::Remove(std::shared_ptr<TcpConnection> connection) {
-  auto it = connections_.find(connection);
-  if (it == connections_.end()) {
+void ConnectionManager::RemoveServer(
+    std::shared_ptr<TcpConnection> connection) {
+  auto it = servers_.find(connection);
+  if (it == servers_.end()) {
     return;
   }
-  connections_.erase(it);
+  servers_.erase(it);
 
   PrintManagedConnections();
+}
+
+void ConnectionManager::Remove(std::shared_ptr<TcpConnection> connection) {
+  RemoveClient(connection);
+  RemoveServer(connection);
 }
 
 void ConnectionManager::Deliver(const Message& message,
                                 const std::string& endpoint) {
   std::string serialized;
   message.SerializeToString(&serialized);
-  for (auto connection : connections_) {
+
+  // Attempt delivery to a server.
+  for (auto connection : servers_) {
+    if (connection->endpoint_name() == endpoint) {
+      connection->StartWrite(serialized);
+      return;
+    }
+  }
+
+  // Attempt delivery to a client.
+  for (auto connection : clients_) {
     if (connection->endpoint_name() == endpoint) {
       connection->StartWrite(serialized);
       return;
@@ -54,7 +91,7 @@ void ConnectionManager::Deliver(const Message& message,
 void ConnectionManager::Broadcast(const Message& message) {
   std::string serialized;
   message.SerializeToString(&serialized);
-  for (auto connection : connections_) {
+  for (auto connection : servers_) {
     connection->StartWrite(serialized);
   }
 
@@ -70,19 +107,26 @@ void ConnectionManager::Handle(const std::string& raw_message,
   message.ParseFromString(raw_message);
   if (message.type() == Message_MessageType_HEARTBEAT) {
     connection->set_endpoint_name(message.from());
-    Add(connection);
+    AddServer(connection);
   } else if (message.type() == Message_MessageType_UNKNOWN) {
     std::cout << "Unknown message type from " << message.from()
               << ", dropping message..." << std::endl;
   } else {
+    // If a request was received from a client, identify the connection as
+    // a client connection and begin tracking it.
+    if (message.type() == Message_MessageType_REQUEST) {
+      connection->set_endpoint_name(message.from());
+      AddClient(connection);
+    }
+
     environment_.Handle(message);
   }
 }
 
 void ConnectionManager::PrintManagedConnections() {
-  std::cout << "ConnectionManager (" << connections_.size()
-            << " connections)" << std::endl;
-  for (auto connection : connections_) {
+  std::cout << "ConnectionManager (" << servers_.size()
+            << " server connections)" << std::endl;
+  for (auto connection : servers_) {
     std::cout << "  localhost -> " << connection->endpoint_name() << std::endl;
   }
 }
