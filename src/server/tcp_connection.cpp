@@ -52,7 +52,7 @@ void TcpConnection::HandleRead(const boost::system::error_code& error,
 
     StartRead();
   } else {
-    manager_.Remove(shared_from_this());
+    manager_.RemoveConnection(shared_from_this());
   }
 }
 

@@ -18,20 +18,20 @@ class ConnectionManager {
   explicit ConnectionManager(std::string& server_name);
 
   // Starts tracking a client connection.
-  void AddClient(std::shared_ptr<TcpConnection> connection);
+  void AddClientConnection(std::shared_ptr<TcpConnection> connection);
 
   // Stops tracking a client connection.
-  void RemoveClient(std::shared_ptr<TcpConnection> connection);
+  void RemoveClientConnection(std::shared_ptr<TcpConnection> connection);
 
   // Starts tracking a server connection; starts the connection.
-  void AddServer(std::shared_ptr<TcpConnection> connection);
+  void AddServerConnection(std::shared_ptr<TcpConnection> connection);
 
   // Stops tracking a server connection.
-  void RemoveServer(std::shared_ptr<TcpConnection> connection);
+  void RemoveServerConnection(std::shared_ptr<TcpConnection> connection);
 
   // Stops tracking a connection. Attempts to remove from both client and server
   // connection pools.
-  void Remove(std::shared_ptr<TcpConnection> connection);
+  void RemoveConnection(std::shared_ptr<TcpConnection> connection);
 
   // Attempts delivery of the message to the given endpoint. Endpoint must be an
   // active connection tracked by the connection manager or the name of this

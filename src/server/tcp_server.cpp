@@ -61,7 +61,7 @@ void TcpServer::HandleConnect(
     StartConnect(endpoints, ++endpoint_iter, endpoint_name);
   } else {
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
-    connection_manager_.AddServer(connection);
+    connection_manager_.AddServerConnection(connection);
 
     Message message;
     message.set_type(Message_MessageType_HEARTBEAT);

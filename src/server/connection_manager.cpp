@@ -6,7 +6,8 @@
 ConnectionManager::ConnectionManager(std::string& server_name)
     : environment_(*this, server_name) {}
 
-void ConnectionManager::AddClient(std::shared_ptr<TcpConnection> connection) {
+void ConnectionManager::AddClientConnection(
+    std::shared_ptr<TcpConnection> connection) {
   if (clients_.count(connection) != 0) {
     return;
   }
@@ -16,7 +17,7 @@ void ConnectionManager::AddClient(std::shared_ptr<TcpConnection> connection) {
   PrintManagedConnections();
 }
 
-void ConnectionManager::RemoveClient(
+void ConnectionManager::RemoveClientConnection(
     std::shared_ptr<TcpConnection> connection) {
   auto it = clients_.find(connection);
   if (it == clients_.end()) {
@@ -27,7 +28,8 @@ void ConnectionManager::RemoveClient(
   PrintManagedConnections();
 }
 
-void ConnectionManager::AddServer(std::shared_ptr<TcpConnection> connection) {
+void ConnectionManager::AddServerConnection(
+    std::shared_ptr<TcpConnection> connection) {
   if (servers_.count(connection) != 0) {
     return;
   }
@@ -45,7 +47,7 @@ void ConnectionManager::AddServer(std::shared_ptr<TcpConnection> connection) {
   }
 }
 
-void ConnectionManager::RemoveServer(
+void ConnectionManager::RemoveServerConnection(
     std::shared_ptr<TcpConnection> connection) {
   auto it = servers_.find(connection);
   if (it == servers_.end()) {
@@ -56,9 +58,9 @@ void ConnectionManager::RemoveServer(
   PrintManagedConnections();
 }
 
-void ConnectionManager::Remove(std::shared_ptr<TcpConnection> connection) {
-  RemoveClient(connection);
-  RemoveServer(connection);
+void ConnectionManager::RemoveConnection(std::shared_ptr<TcpConnection> connection) {
+  RemoveClientConnection(connection);
+  RemoveServerConnection(connection);
 }
 
 void ConnectionManager::Deliver(const Message& message,
@@ -107,7 +109,7 @@ void ConnectionManager::Handle(const std::string& raw_message,
   message.ParseFromString(raw_message);
   if (message.type() == Message_MessageType_HEARTBEAT) {
     connection->set_endpoint_name(message.from());
-    AddServer(connection);
+    AddServerConnection(connection);
   } else if (message.type() == Message_MessageType_UNKNOWN) {
     std::cout << "Unknown message type from " << message.from()
               << ", dropping message..." << std::endl;
@@ -116,7 +118,7 @@ void ConnectionManager::Handle(const std::string& raw_message,
     // a client connection and begin tracking it.
     if (message.type() == Message_MessageType_REQUEST) {
       connection->set_endpoint_name(message.from());
-      AddClient(connection);
+      AddClientConnection(connection);
     }
 
     environment_.Handle(message);
