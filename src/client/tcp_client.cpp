@@ -47,7 +47,9 @@ void TcpClient::HandleConnect(
     auto c = new Command();
     c->set_client(name_);
     c->set_sequence_number(1);
-    c->set_operation(0);
+    c->set_key("foo");
+    c->set_value("foo");
+    c->set_operation(Command_Operation_PUT);
 
     Request r;
     r.set_allocated_command(c);
@@ -77,11 +79,20 @@ void TcpClient::StartRead() {
 void TcpClient::HandleRead(const boost::system::error_code& error,
                            std::size_t bytes_transferred) {
   if (!error) {
-    std::string message(
+    std::string raw_message(
         boost::asio::buffers_begin(input_buffer_.data()),
         boost::asio::buffers_begin(input_buffer_.data()) + bytes_transferred);
     input_buffer_.consume(bytes_transferred);
-    std::cout << "Received message: " << message << std::endl;
+    std::cout << "Received message: " << raw_message << std::endl;
+
+    Message message;
+    message.ParseFromString(raw_message);
+    if (message.type() == Message_MessageType_RESPONSE) {
+      Response r;
+      message.message().UnpackTo(&r);
+
+      std::cout << "Value: " << r.value() << std::endl;
+    }
 
     StartRead();
   } else {

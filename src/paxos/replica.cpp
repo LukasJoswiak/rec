@@ -94,8 +94,23 @@ void Replica::Execute(const Command& command) {
 
   std::cout << "Executing command for slot " << slot_out_ << std::endl;
 
+  std::string value = "";
+  if (command.operation() == Command_Operation_GET) {
+    if (store_.find(command.key()) != store_.end()) {
+      value = store_.at(command.key());
+    }
+  } else if (command.operation() == Command_Operation_PUT) {
+    auto result = store_.insert({command.key(), command.value()});
+    if (std::get<1>(result)) {
+      value = store_.at(command.key());
+    }
+  } else if (command.operation() == Command_Operation_APPEND) {
+    auto result = store_.insert({command.key(), command.value()});
+    value = std::get<0>(result)->first;
+  }
+
   Response r;
-  r.set_value("test");
+  r.set_value(value);
 
   Message m;
   m.set_type(Message_MessageType_RESPONSE);

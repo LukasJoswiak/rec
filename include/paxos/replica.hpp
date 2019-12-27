@@ -31,6 +31,9 @@ class Replica : public Process {
   // if the command has already been executed.
   void Execute(const Command& command);
 
+  // Key-value store for the application.
+  std::unordered_map<std::string, std::string> store_;
+
   int slot_in_;
   int slot_out_;
   std::queue<Command> requests_;
