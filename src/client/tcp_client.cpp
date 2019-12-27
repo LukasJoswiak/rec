@@ -4,11 +4,12 @@
 
 #include <iostream>
 
-#include "proto/messages.pb.h"
-
-TcpClient::TcpClient(boost::asio::io_context& io_context, std::string&& name)
+TcpClient::TcpClient(
+    boost::asio::io_context& io_context, std::string&& name,
+    std::deque<Command>& workload)
     : socket_(io_context),
-      name_(name) {}
+      name_(name),
+      workload_(workload) {}
 
 void TcpClient::Start(boost::asio::ip::tcp::resolver::results_type endpoints) {
   endpoints_ = endpoints;
@@ -44,24 +45,7 @@ void TcpClient::HandleConnect(
   } else {
     std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
 
-    auto c = new Command();
-    c->set_client(name_);
-    c->set_sequence_number(1);
-    c->set_key("foo");
-    c->set_value("foo");
-    c->set_operation(Command_Operation_PUT);
-
-    Request r;
-    r.set_allocated_command(c);
-    r.set_source(name_);
-
-    Message m;
-    m.set_type(Message_MessageType_REQUEST);
-    m.mutable_message()->PackFrom(r);
-    m.set_from(name_);
-
-    std::string serialized;
-    m.SerializeToString(&serialized);
+    auto serialized = GetNextMessage().value();
 
     StartRead();
     StartWrite(serialized);
@@ -83,7 +67,6 @@ void TcpClient::HandleRead(const boost::system::error_code& error,
         boost::asio::buffers_begin(input_buffer_.data()),
         boost::asio::buffers_begin(input_buffer_.data()) + bytes_transferred);
     input_buffer_.consume(bytes_transferred);
-    std::cout << "Received message: " << raw_message << std::endl;
 
     Message message;
     message.ParseFromString(raw_message);
@@ -92,6 +75,10 @@ void TcpClient::HandleRead(const boost::system::error_code& error,
       message.message().UnpackTo(&r);
 
       std::cout << "Value: " << r.value() << std::endl;
+
+      if (auto serialized = GetNextMessage()) {
+        StartWrite(serialized.value());
+      }
     }
 
     StartRead();
@@ -111,4 +98,26 @@ void TcpClient::HandleWrite(const boost::system::error_code& error) {
   if (error) {
     Stop();
   }
+}
+
+std::optional<std::string> TcpClient::GetNextMessage() {
+  if (workload_.empty()) {
+    return std::nullopt;
+  }
+
+  Command command = workload_.front();
+  workload_.pop_front();
+
+  Request r;
+  r.set_allocated_command(new Command(command));
+  r.set_source(name_);
+
+  Message m;
+  m.set_type(Message_MessageType_REQUEST);
+  m.mutable_message()->PackFrom(r);
+  m.set_from(name_);
+
+  std::string serialized;
+  m.SerializeToString(&serialized);
+  return serialized;
 }
