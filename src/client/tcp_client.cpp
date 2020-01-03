@@ -5,7 +5,7 @@
 #include <iostream>
 
 TcpClient::TcpClient(
-    boost::asio::io_context& io_context, std::string&& name,
+    boost::asio::io_context& io_context, std::string& name,
     std::deque<Command>& workload)
     : socket_(io_context),
       name_(name),

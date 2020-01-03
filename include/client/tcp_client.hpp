@@ -13,7 +13,7 @@
 
 class TcpClient {
  public:
-  explicit TcpClient(boost::asio::io_context& io_context, std::string&& name,
+  explicit TcpClient(boost::asio::io_context& io_context, std::string& name,
                      std::deque<Command>& workload);
 
   // Starts the client and attempts to open a connection using the given

@@ -9,18 +9,19 @@
 #include "proto/messages.pb.h"
 
 int main(int argc, char** argv) {
+  std::string client_name = argv[1];
   // Create a workload.
   std::deque<Command> workload;
 
   Command c;
-  c.set_client("client1");
+  c.set_client(client_name);
   c.set_sequence_number(1);
   c.set_key("foo");
   c.set_value("bar");
   c.set_operation(Command_Operation_PUT);
   workload.push_back(c);
 
-  c.set_client("client1");
+  c.set_client(client_name);
   c.set_sequence_number(2);
   c.set_key("bar");
   c.set_value("baz");
@@ -28,7 +29,7 @@ int main(int argc, char** argv) {
   workload.push_back(c);
 
   c = Command();
-  c.set_client("client1");
+  c.set_client(client_name);
   c.set_sequence_number(3);
   c.set_key("foo");
   c.set_operation(Command_Operation_GET);
@@ -36,7 +37,7 @@ int main(int argc, char** argv) {
 
   boost::asio::io_context io_context;
   boost::asio::ip::tcp::resolver r(io_context);
-  TcpClient client(io_context, "client1", workload);
+  TcpClient client(io_context, client_name, workload);
 
   client.Start(r.resolve("localhost", "1111"));
 
