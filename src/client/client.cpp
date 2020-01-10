@@ -35,6 +35,13 @@ int main(int argc, char** argv) {
   c.set_operation(Command_Operation_GET);
   workload.push_back(c);
 
+  c = Command();
+  c.set_client(client_name);
+  c.set_sequence_number(4);
+  c.set_key("bar");
+  c.set_operation(Command_Operation_GET);
+  workload.push_back(c);
+
   boost::asio::io_context io_context;
   boost::asio::ip::tcp::resolver r(io_context);
   TcpClient client(io_context, client_name, workload);

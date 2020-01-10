@@ -9,12 +9,11 @@ message Command {
   string client = 1;
   int64 sequence_number = 2;
   string key = 3;
-  string value = 4;
+  bytes value = 4;
   enum Operation {
     UNKNOWN = 0;
     GET = 1;
     PUT = 2;
-    APPEND = 3;
   }
   Operation operation = 5;
 }
