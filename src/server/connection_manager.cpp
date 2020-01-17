@@ -4,7 +4,8 @@
 #include "server/connection_manager.hpp"
 
 ConnectionManager::ConnectionManager(std::string& server_name)
-    : environment_(*this, server_name) {}
+    : server_name_(server_name),
+      environment_(*this, server_name) {}
 
 void ConnectionManager::AddClientConnection(
     std::shared_ptr<TcpConnection> connection) {
@@ -68,6 +69,11 @@ void ConnectionManager::Deliver(const Message& message,
   std::string serialized;
   message.SerializeToString(&serialized);
 
+  if (server_name_ == endpoint) {
+    // Attempt local delivery.
+    environment_.Handle(message);
+  }
+
   // Attempt delivery to a server.
   for (auto connection : servers_) {
     if (connection->endpoint_name() == endpoint) {
@@ -83,11 +89,6 @@ void ConnectionManager::Deliver(const Message& message,
       return;
     }
   }
-
-  // TODO: If the TCP connection to a remote server was dropped, don't want
-  // to attempt local delivery.
-  // Attempt local delivery.
-  environment_.Handle(message);
 }
 
 void ConnectionManager::Broadcast(const Message& message) {

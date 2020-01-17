@@ -18,7 +18,7 @@ $(BINDIR)/benchmark: $(BUILDDIR)/libecwrapper.a $(BUILDDIR)/cm256.o $(BUILDDIR)/
 	# Ignore first dependency when linking object files.
 	$(CXX) $(filter-out $<,$^) -o $@ -L$(BUILDDIR) -lecwrapper
 
-$(BUILDDIR)/benchmark.o: ../benchmark/benchmark.cc
+$(BUILDDIR)/benchmark.o: ../benchmark/benchmark.cpp
 	$(CXX) $(CXXFLAGS) -I $(SRCDIR) -c -o $@ $<
 
 # Generate the library archive from the object file.

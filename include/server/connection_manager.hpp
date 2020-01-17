@@ -52,6 +52,8 @@ class ConnectionManager {
   std::set<std::shared_ptr<TcpConnection>> clients_;
   std::set<std::shared_ptr<TcpConnection>> servers_;
 
+  std::string server_name_;
+
   // Message handler used to pass messages to appropriate location.
   Environment environment_;
 };
