@@ -2,7 +2,7 @@ CC = clang
 CXX = clang++
 
 CFLAGS = -Wall -g -std=c11
-CXXFLAGS = -Wall -g -MMD -std=c++17 -I include/ -I build/gen
+CXXFLAGS = -Wall -g -MMD -std=c++17 -I include/ -I build/gen -I lib/
 LIBS = -pthread -lprotobuf
 
 SRCDIR = src
@@ -43,7 +43,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/client/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Replica (rec) build rules.
-$(BINDIR)/rec: $(PROTO_OBJ) $(PAXOS_OBJ) $(REC_OBJ)
+$(BINDIR)/rec: $(PROTO_OBJ) $(PAXOS_OBJ) $(REC_OBJ) $(BUILDDIR)/cm256.o $(BUILDDIR)/gf256.o
 	$(CXX) $^ -o $@ $(LIBS)
 
 # Rebuild if any depedencies have changed (including header files).
@@ -78,6 +78,14 @@ dirs: $(BUILDDIR) $(BINDIR)
 
 $(BUILDDIR) $(GENDIR) $(BINDIR):
 	mkdir -p $@ $(BUILDDIR) $(GENDIR)
+
+# Library build rules.
+
+$(BUILDDIR)/cm256.o: $(LIBDIR)/cm256/cm256.cpp
+	$(CC) $(CXXFLAGS) -I $(LIBDIR)/cm256/ -c -o $@ $<
+
+$(BUILDDIR)/gf256.o: $(LIBDIR)/cm256/gf256.cpp
+	$(CC) $(CXXFLAGS) -I $(LIBDIR)/cm256/ -c -o $@ $<
 
 .PHONY: cpplint
 cpplint: ctags
