@@ -20,12 +20,12 @@ Scout::Scout(
 }
 
 Scout::~Scout() {
-  logger_->info("exiting");
+  logger_->trace("exiting");
   exit_ = true;
 }
 
 void Scout::Run() {
-  logger_->info("spawned");
+  logger_->trace("spawned");
   P1A p;
   p.set_allocated_ballot_number(new BallotNumber(ballot_number_));
 

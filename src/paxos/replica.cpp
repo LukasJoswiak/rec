@@ -37,7 +37,7 @@ void Replica::HandleRequest(Request&& r, const std::string& from) {
 
 void Replica::HandleDecision(Decision&& d, const std::string& from) {
   int slot_number = d.slot_number();
-  logger_->info("received Decision for slot {}", slot_number);
+  logger_->debug("received Decision for slot {}", slot_number);
 
   decisions_[slot_number] = d.command();
   while (decisions_.find(slot_out_) != decisions_.end()) {
@@ -88,14 +88,13 @@ void Replica::Execute(const Command& command) {
   for (int i = 1; i < slot_out_; ++i) {
     if (google::protobuf::util::MessageDifferencer::Equals(decisions_.at(i),
                                                            command)) {
-      std::cout << "Already executed command at slot " << i
-                << ", performing no-op" << std::endl;
+      logger_->debug("already executed command for slot {}, performing no-op",
+                     i);
       ++slot_out_;
       return;
     }
   }
-
-  std::cout << "Executing command for slot " << slot_out_ << std::endl;
+  logger_->info("executing command for slot {}", slot_out_);
 
   std::string value;
   if (command.operation() == Command_Operation_GET) {
@@ -116,7 +115,7 @@ void Replica::Execute(const Command& command) {
   m.set_type(Message_MessageType_RESPONSE);
   m.mutable_message()->PackFrom(r);
 
-  std::cout << "Sending response to " << command.client() << std::endl;
+  logger_->info("sending response to {}", command.client());
   dispatch_queue_.push(std::make_pair(command.client(), m));
 
   ++slot_out_;

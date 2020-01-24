@@ -6,6 +6,7 @@
 
 namespace paxos {
 
+
 Acceptor::Acceptor(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
