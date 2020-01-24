@@ -12,3 +12,5 @@ $(LIBDIR)/zfec:
 
 $(LIBDIR)/cm256:
 	git clone git@github.com:catid/cm256.git $@
+
+# TODO: add spdlog download

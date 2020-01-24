@@ -10,7 +10,9 @@ Acceptor::Acceptor(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue)
-    : Process(message_queue, dispatch_queue) {}
+    : Process(message_queue, dispatch_queue) {
+  logger_ = spdlog::get("acceptor");
+}
 
 void Acceptor::Handle(Message&& message) {
   if (message.type() == Message_MessageType_P1A) {
@@ -25,7 +27,7 @@ void Acceptor::Handle(Message&& message) {
 }
 
 void Acceptor::HandleP1A(P1A&& p, const std::string& from) {
-  std::cout << "Received P1A from " << from << std::endl;
+  logger_->debug("received P1A from {}", from);
   if (CompareBallotNumbers(ballot_number_, p.ballot_number()) > 0) {
     ballot_number_ = p.ballot_number();
   }
@@ -45,11 +47,12 @@ void Acceptor::HandleP1A(P1A&& p, const std::string& from) {
   m.set_type(Message_MessageType_P1B);
   m.mutable_message()->PackFrom(p1b);
 
+  logger_->debug("sending P1B to {}", from);
   dispatch_queue_.push(std::make_pair(from, m));
 }
 
 void Acceptor::HandleP2A(P2A&& p, const std::string& from) {
-  std::cout << "Received P2A from " << from << std::endl;
+  logger_->debug("received P2A from {}", from);
   if (CompareBallotNumbers(ballot_number_, p.ballot_number()) == 0) {
     PValue pvalue;
     pvalue.set_allocated_ballot_number(new BallotNumber(p.ballot_number()));
@@ -67,6 +70,7 @@ void Acceptor::HandleP2A(P2A&& p, const std::string& from) {
   m.set_type(Message_MessageType_P2B);
   m.mutable_message()->PackFrom(p2b);
 
+  logger_->debug("sending P2B to {}", from);
   dispatch_queue_.push(std::make_pair(from, m));
 }
 

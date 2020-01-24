@@ -6,10 +6,7 @@
 #include <thread>
 
 #include "proto/heartbeat.pb.h"
-
-const std::array<uint16_t, 3> kServerPorts = {1111, 1112, 1113};
-const std::array<std::string, 3> kServerNames =
-    {"server1", "server2", "server3"};
+#include "server/servers.hpp"
 
 TcpServer::TcpServer(
     boost::asio::io_context& io_context, std::string&& name, uint16_t port)
@@ -19,9 +16,9 @@ TcpServer::TcpServer(
       resolver_(io_context),
       name_(name),
       connection_manager_(name) {
-  for (int i = 0; i < kServerPorts.size(); ++i) {
-    auto server_port = kServerPorts.at(i);
-    auto server_name = kServerNames.at(i);
+  for (int i = 0; i < kServers.size(); ++i) {
+    auto server_name = std::get<0>(kServers.at(i));
+    auto server_port = std::get<1>(kServers.at(i));
     if (server_port != port) {
       auto endpoints = resolver_.resolve(
           "localhost",

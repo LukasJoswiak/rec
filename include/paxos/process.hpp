@@ -6,9 +6,9 @@
 #include <string>
 #include <utility>
 
-#include "paxos/shared_queue.hpp"
-
 #include "proto/messages.pb.h"
+#include "spdlog/spdlog.h"
+#include "paxos/shared_queue.hpp"
 
 namespace paxos {
 
@@ -45,6 +45,8 @@ class Process {
 
   // Set to true to tell the process to exit.
   bool exit_;
+
+  std::shared_ptr<spdlog::logger> logger_;
 };
 
 }  // namespace paxos

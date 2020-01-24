@@ -14,7 +14,9 @@ Replica::Replica(
         dispatch_queue)
     : Process(message_queue, dispatch_queue),
       slot_in_(1),
-      slot_out_(1) {}
+      slot_out_(1) {
+  logger_ = spdlog::get("replica");
+}
 
 void Replica::Handle(Message&& message) {
   if (message.type() == Message_MessageType_REQUEST) {
@@ -35,6 +37,7 @@ void Replica::HandleRequest(Request&& r, const std::string& from) {
 
 void Replica::HandleDecision(Decision&& d, const std::string& from) {
   int slot_number = d.slot_number();
+  logger_->info("received Decision for slot {}", slot_number);
 
   decisions_[slot_number] = d.command();
   while (decisions_.find(slot_out_) != decisions_.end()) {
@@ -73,7 +76,7 @@ void Replica::Propose() {
 
       // Send proposal to all servers for now.
       // TODO: only send proposal to leaders.
-      std::cout << "Proposing command for slot " << slot_in_ << std::endl;
+      logger_->debug("proposing command for slot {}", slot_in_);
       dispatch_queue_.push(std::make_pair(std::nullopt, m));
 
       ++slot_in_;

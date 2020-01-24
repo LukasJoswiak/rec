@@ -5,6 +5,8 @@
 #include <iostream>
 #include <thread>
 
+#include "spdlog/spdlog.h"
+
 namespace paxos {
 
 Leader::Leader(
@@ -17,6 +19,7 @@ Leader::Leader(
       active_(false) {
   ballot_number_.set_number(0);
   ballot_number_.set_address(address);
+  logger_ = spdlog::get("leader");
 }
 
 void Leader::Run() {
@@ -50,7 +53,7 @@ void Leader::Handle(Message&& message) {
 }
 
 void Leader::HandleProposal(Proposal&& p, const std::string& from) {
-  std::cout << "Leader received proposal from " << from << std::endl;
+  logger_->debug("received proposal from {}", from);
   int slot_number = p.slot_number();
   if (proposals_.find(slot_number) == proposals_.end()) {
     proposals_[slot_number] = p.command();
@@ -63,8 +66,9 @@ void Leader::HandleProposal(Proposal&& p, const std::string& from) {
 }
 
 void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
-  std::cout << "Received adopted from " << from << std::endl;
+  logger_->debug("received Adopted from {}", from);
   if (CompareBallotNumbers(ballot_number_, a.ballot_number()) == 0) {
+    logger_->info("{} promoted to leader", address_);
     // Map of slot number -> ballot, used to determine the command to propose
     // for each slot.
     std::unordered_map<int, BallotNumber> max_ballots;
@@ -91,7 +95,8 @@ void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
 }
 
 void Leader::HandlePreempted(Preempted&& p, const std::string& from) {
-  std::cout << "Received preempted from " << from << std::endl;
+  logger_->debug("received Preempted from {}", from);
+  logger_->info("{} demoted", address_);
   if (CompareBallotNumbers(ballot_number_, p.ballot_number()) > 0) {
     ballot_number_.set_number(ballot_number_.number() + 1);
 
@@ -121,8 +126,7 @@ void Leader::HandleP2B(Message&& m, const std::string& from) {
 }
 
 void Leader::SpawnCommander(int slot_number, Command command) {
-  std::cout << "Spawning commander for slot number " << slot_number
-            << std::endl;
+  logger_->trace("spawning commander for slot {}", slot_number);
   // Create a SharedQueue for the commander to allow passing of messages to it.
   commander_message_queue_[slot_number] =
       std::make_shared<common::SharedQueue<Message>>();

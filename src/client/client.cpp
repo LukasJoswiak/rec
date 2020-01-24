@@ -17,10 +17,11 @@ int main(int argc, char** argv) {
   c.set_client(client_name);
   c.set_sequence_number(1);
   c.set_key("foo");
-  c.set_value("bar");
+  c.set_value("barbarbarbar");
   c.set_operation(Command_Operation_PUT);
   workload.push_back(c);
 
+  /*
   c.set_client(client_name);
   c.set_sequence_number(2);
   c.set_key("bar");
@@ -41,12 +42,13 @@ int main(int argc, char** argv) {
   c.set_key("bar");
   c.set_operation(Command_Operation_GET);
   workload.push_back(c);
+  */
 
   boost::asio::io_context io_context;
   boost::asio::ip::tcp::resolver r(io_context);
   TcpClient client(io_context, client_name, workload);
 
-  client.Start(r.resolve("localhost", "1111"));
+  client.Start(r.resolve("localhost", "1112"));
 
   io_context.run();
 

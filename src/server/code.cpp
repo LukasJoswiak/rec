@@ -4,7 +4,13 @@
 
 #include <iostream>
 
+#include "server/servers.hpp"
+
 static bool kInitialized = false;
+
+// The number of data shares generated must be equal to the total number of
+// servers. One chunk will be sent to each server.
+static_assert(Code::kOriginalBlocks + Code::kRedundantBlocks == kServers.size());
 
 void Code::Init() {
   if (!kInitialized) {
@@ -53,9 +59,5 @@ bool Code::Decode(cm256_block* blocks, int block_size) {
   params.OriginalCount = kOriginalBlocks;
   params.RecoveryCount = kRedundantBlocks;
 
-  if (cm256_decode(params, blocks)) {
-    return false;
-  }
-
-  return true;
+  return !cm256_decode(params, blocks);
 }

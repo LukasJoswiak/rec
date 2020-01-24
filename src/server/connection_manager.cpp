@@ -2,6 +2,7 @@
 
 #include "proto/heartbeat.pb.h"
 #include "server/connection_manager.hpp"
+#include "server/servers.hpp"
 
 ConnectionManager::ConnectionManager(std::string& server_name)
     : server_name_(server_name),
@@ -40,10 +41,11 @@ void ConnectionManager::AddServerConnection(
 
   PrintManagedConnections();
 
-  // For now, begin Paxos processes when two connections (a quorum) are active.
+  // For now, begin Paxos processes when a quorum of connections are active.
   // servers_ only stores remote connections, so a size of one really means two
   // active connections (counting the local server).
-  if (servers_.size() >= 1) {
+  // TODO: Don't call Start for every new server added!
+  if (servers_.size() + 1 >= kServers.size() / 2 + 1) {
     environment_.Start();
   }
 }
