@@ -7,7 +7,7 @@
 Environment::Environment(ConnectionManager& manager, std::string& server_name)
     : manager_(manager),
       server_name_(server_name),
-      echo_(echo_queue_, dispatch_queue_),
+      echo_(echo_queue_, dispatch_queue_, server_name_),
       replica_(replica_queue_, dispatch_queue_),
       acceptor_(acceptor_queue_, dispatch_queue_),
       leader_(leader_queue_, dispatch_queue_, server_name) {}

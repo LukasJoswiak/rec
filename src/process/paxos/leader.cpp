@@ -23,11 +23,6 @@ Leader::Leader(
 }
 
 void Leader::Run() {
-  // Spawn a scout to start leader election.
-  scout_ = std::make_shared<paxos::Scout>(scout_message_queue_, dispatch_queue_,
-                                          address_, ballot_number_);
-  std::thread(&paxos::Scout::Run, scout_).detach();
-
   // Begin listening for incoming messages.
   Process::Run();
 }

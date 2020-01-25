@@ -5,7 +5,9 @@
 
 ConnectionManager::ConnectionManager(std::string& server_name)
     : server_name_(server_name),
-      environment_(*this, server_name) {}
+      environment_(*this, server_name) {
+  environment_.Start();      
+}
 
 void ConnectionManager::AddClientConnection(
     std::shared_ptr<TcpConnection> connection) {
@@ -39,14 +41,6 @@ void ConnectionManager::AddServerConnection(
   connection->Start();
 
   PrintManagedConnections();
-
-  // For now, begin Paxos processes when a quorum of connections are active.
-  // servers_ only stores remote connections, so a size of one really means two
-  // active connections (counting the local server).
-  // TODO: Don't call Start for every new server added!
-  if (servers_.size() + 1 >= kServers.size() / 2 + 1) {
-    environment_.Start();
-  }
 }
 
 void ConnectionManager::RemoveServerConnection(
