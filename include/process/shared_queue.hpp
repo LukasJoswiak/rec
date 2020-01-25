@@ -8,6 +8,7 @@
 #include <mutex>
 #include <utility>
 
+namespace process {
 namespace common {
 
 // Thread safe queue implementation implemented with mutexes.
@@ -101,5 +102,6 @@ bool SharedQueue<T>::empty() {
 }
 
 }  // namespace common
+}  // namespace process
 
 #endif  // INCLUDE_PAXOS_SHARED_QUEUE_HPP_

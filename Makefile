@@ -18,8 +18,11 @@ CLIENT_OBJ = $(CLIENT_SRC:$(SRCDIR)/client/%.cpp=$(BUILDDIR)/%.o)
 REC_SRC = $(wildcard $(SRCDIR)/server/*.cpp)
 REC_OBJ = $(REC_SRC:$(SRCDIR)/server/%.cpp=$(BUILDDIR)/%.o)
 
-PAXOS_SRC = $(wildcard $(SRCDIR)/paxos/*.cpp)
-PAXOS_OBJ = $(PAXOS_SRC:$(SRCDIR)/paxos/%.cpp=$(BUILDDIR)/%.o)
+PROCESS_SRC = $(wildcard $(SRCDIR)/process/*.cpp)
+PROCESS_OBJ = $(PROCESS_SRC:$(SRCDIR)/process/%.cpp=$(BUILDDIR)/%.o)
+
+PAXOS_SRC = $(wildcard $(SRCDIR)/process/paxos/*.cpp)
+PAXOS_OBJ = $(PAXOS_SRC:$(SRCDIR)/process/paxos/%.cpp=$(BUILDDIR)/%.o)
 
 PROTO_SRC = $(wildcard $(SRCDIR)/proto/*.proto)
 PROTO_GEN = $(PROTO_SRC:$(SRCDIR)/proto/%.proto=$(GENDIR)/proto/%.pb.cc)
@@ -43,7 +46,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/client/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Replica (rec) build rules.
-$(BINDIR)/rec: $(PROTO_OBJ) $(PAXOS_OBJ) $(REC_OBJ) $(BUILDDIR)/cm256.o $(BUILDDIR)/gf256.o
+$(BINDIR)/rec: $(PROTO_OBJ) $(PROCESS_OBJ) $(PAXOS_OBJ) $(REC_OBJ) $(BUILDDIR)/cm256.o $(BUILDDIR)/gf256.o
 	$(CXX) $^ -o $@ $(LIBS)
 
 # Rebuild if any depedencies have changed (including header files).
@@ -52,9 +55,12 @@ $(BINDIR)/rec: $(PROTO_OBJ) $(PAXOS_OBJ) $(REC_OBJ) $(BUILDDIR)/cm256.o $(BUILDD
 $(BUILDDIR)/%.o: $(SRCDIR)/server/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-# Paxos build rules.
+# Process build rules.
+$(BUILDDIR)/%.o: $(SRCDIR)/process/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(BUILDDIR)/%.o: $(SRCDIR)/paxos/%.cpp
+# Paxos build rules.
+$(BUILDDIR)/%.o: $(SRCDIR)/process/paxos/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Protobuf build rules.

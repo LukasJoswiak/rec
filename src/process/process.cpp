@@ -1,11 +1,10 @@
 // Copyright 2019 Lukas Joswiak
 
-#include "paxos/process.hpp"
+#include "process/process.hpp"
 
-#include <iostream>
 #include <thread>
 
-namespace paxos {
+namespace process {
 
 Process::Process(
     common::SharedQueue<Message>& message_queue,
@@ -43,4 +42,4 @@ int Process::CompareBallotNumbers(const BallotNumber& b1,
   }
 }
 
-}  // namespace paxos
+}  // namespace process

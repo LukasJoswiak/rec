@@ -8,9 +8,10 @@
 #include <unordered_map>
 #include <utility>
 
-#include "paxos/process.hpp"
+#include "process/process.hpp"
 #include "proto/messages.pb.h"
 
+namespace process {
 namespace paxos {
 
 class Replica : public Process {
@@ -42,5 +43,6 @@ class Replica : public Process {
 };
 
 }  // namespace paxos
+}  // namespace process
 
 #endif  // INCLUDE_PAXOS_REPLICA_HPP_

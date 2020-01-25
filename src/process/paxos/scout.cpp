@@ -1,11 +1,10 @@
 // Copyright 2019 Lukas Joswiak
 
-#include "paxos/scout.hpp"
-
-#include <iostream>
+#include "process/paxos/scout.hpp"
 
 #include "server/servers.hpp"
 
+namespace process {
 namespace paxos {
 
 Scout::Scout(
@@ -98,3 +97,4 @@ void Scout::HandleP1B(P1B&& p, const std::string& from) {
 }
 
 }  // namespace paxos
+}  // namespace process

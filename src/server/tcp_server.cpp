@@ -5,7 +5,6 @@
 #include <iostream>
 #include <thread>
 
-#include "proto/heartbeat.pb.h"
 #include "server/servers.hpp"
 
 TcpServer::TcpServer(
@@ -61,7 +60,7 @@ void TcpServer::HandleConnect(
     connection_manager_.AddServerConnection(connection);
 
     Message message;
-    message.set_type(Message_MessageType_HEARTBEAT);
+    message.set_type(Message_MessageType_SETUP);
     message.set_from(name_);
 
     connection_manager_.Deliver(message, endpoint_name);

@@ -7,10 +7,11 @@
 #include <unordered_set>
 #include <utility>
 
-#include "paxos/compare.hpp"
-#include "paxos/process.hpp"
+#include "process/paxos/compare.hpp"
+#include "process/process.hpp"
 #include "proto/messages.pb.h"
 
+namespace process {
 namespace paxos {
 
 class Acceptor : public Process {
@@ -31,5 +32,6 @@ class Acceptor : public Process {
 };
 
 }  // namespace paxos
+}  // namespace process
 
 #endif  // INCLUDE_PAXOS_ACCEPTOR_HPP_

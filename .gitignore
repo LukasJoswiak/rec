@@ -20,3 +20,6 @@ bin/
 
 # Ctags
 tags
+
+# Mac metadata
+.DS_Store

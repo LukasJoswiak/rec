@@ -6,10 +6,11 @@
 #include <string>
 #include <utility>
 
-#include "paxos/acceptor.hpp"
-#include "paxos/leader.hpp"
-#include "paxos/replica.hpp"
-#include "paxos/shared_queue.hpp"
+#include "process/echo.hpp"
+#include "process/paxos/acceptor.hpp"
+#include "process/paxos/leader.hpp"
+#include "process/paxos/replica.hpp"
+#include "process/shared_queue.hpp"
 #include "proto/messages.pb.h"
 
 // Forward declare ConnectionManager to break circular dependency.
@@ -31,6 +32,7 @@ class Environment {
   // Parses message and calls correct handler.
   void Handle(const Message& message);
 
+  void HandleEchoMessage(const Message& m);
   void HandleReplicaMessage(const Message& m);
   void HandleAcceptorMessage(const Message& m);
   void HandleLeaderMessage(const Message& m);
@@ -43,19 +45,22 @@ class Environment {
   ConnectionManager& manager_;
   std::string& server_name_;
 
-  paxos::Replica replica_;
-  paxos::Acceptor acceptor_;
-  paxos::Leader leader_;
+  process::Echo echo_;
+
+  process::paxos::Replica replica_;
+  process::paxos::Acceptor acceptor_;
+  process::paxos::Leader leader_;
 
   // Queues used to pass messages to threads.
-  common::SharedQueue<Message> replica_queue_;
-  common::SharedQueue<Message> acceptor_queue_;
-  common::SharedQueue<Message> leader_queue_;
+  process::common::SharedQueue<Message> echo_queue_;
+  process::common::SharedQueue<Message> replica_queue_;
+  process::common::SharedQueue<Message> acceptor_queue_;
+  process::common::SharedQueue<Message> leader_queue_;
 
   // Threads push messages onto a shared queue to enqueue them for delivery.
   // Pair consists of <optional(destination name), message>. If the destination
   // does not contain a value, the message will be broadcast to all servers.
-  common::SharedQueue<std::pair<std::optional<std::string>, Message>>
+  process::common::SharedQueue<std::pair<std::optional<std::string>, Message>>
       dispatch_queue_;
 };
 

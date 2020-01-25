@@ -8,9 +8,9 @@
 
 #include "proto/messages.pb.h"
 #include "spdlog/spdlog.h"
-#include "paxos/shared_queue.hpp"
+#include "process/shared_queue.hpp"
 
-namespace paxos {
+namespace process {
 
 // Base class for behavior including receiving and sending messages. This class
 // cannot be instantiated, and all derived classes must implement the Handle
@@ -31,6 +31,8 @@ class Process {
   virtual void Handle(Message&& message) = 0;
 
  protected:
+  // TODO: Move to PaxosProcess derived class. Paxos message handlers should
+  // inherit from PaxosProcess.
   // Returns a negative number if b1 > b2, a positive number if b1 < b2, or
   // zero if b1 equals b2. Ballot numbers are totally ordered and are compared
   // first using their numbers, then using the server address for tie-breakers.
@@ -49,6 +51,6 @@ class Process {
   std::shared_ptr<spdlog::logger> logger_;
 };
 
-}  // namespace paxos
+}  // namespace process
 
 #endif  // INCLUDE_PAXOS_PROCESS_HPP_

@@ -8,6 +8,7 @@
 #include "google/protobuf/util/message_differencer.h"
 #include "proto/messages.pb.h"
 
+namespace process {
 namespace paxos {
 
 // Custom hash and equals function for the PValue message. Used to enable PValue
@@ -26,5 +27,6 @@ struct PValueEqualTo {
 };
 
 }  // namespace paxos
+}  // namespace process
 
 #endif  // INCLUDE_PAXOS_COMPARE_HPP_

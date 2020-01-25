@@ -1,6 +1,5 @@
 // Copyright 2019 Lukas Joswiak
 
-#include "proto/heartbeat.pb.h"
 #include "server/connection_manager.hpp"
 #include "server/servers.hpp"
 
@@ -74,6 +73,7 @@ void ConnectionManager::Deliver(const Message& message,
   if (server_name_ == endpoint) {
     // Attempt local delivery.
     environment_.Handle(message);
+    return;
   }
 
   // Attempt delivery to a server.
@@ -106,11 +106,13 @@ void ConnectionManager::Broadcast(const Message& message) {
 
 void ConnectionManager::Handle(const std::string& raw_message,
                                std::shared_ptr<TcpConnection> connection) {
-  // Special case heartbeat messages to set up the connection. All other
-  // messages will be routed to the message handler.
+  // Special case setup messages to set up the connection and associate TCP
+  // connections with specific servers. All other messages will be routed to
+  // the message handler.
+  // TODO: do I still need this special setup message?
   Message message;
   message.ParseFromString(raw_message);
-  if (message.type() == Message_MessageType_HEARTBEAT) {
+  if (message.type() == Message_MessageType_SETUP) {
     connection->set_endpoint_name(message.from());
     AddServerConnection(connection);
   } else if (message.type() == Message_MessageType_UNKNOWN) {

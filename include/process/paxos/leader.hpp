@@ -8,11 +8,12 @@
 #include <unordered_map>
 #include <utility>
 
-#include "paxos/commander.hpp"
-#include "paxos/process.hpp"
-#include "paxos/scout.hpp"
+#include "process/paxos/commander.hpp"
+#include "process/process.hpp"
+#include "process/paxos/scout.hpp"
 #include "proto/messages.pb.h"
 
+namespace process {
 namespace paxos {
 
 class Leader : public Process {
@@ -59,5 +60,6 @@ class Leader : public Process {
 };
 
 }  // namespace paxos
+}  // namespace process
 
 #endif  // INCLUDE_PAXOS_LEADER_HPP_

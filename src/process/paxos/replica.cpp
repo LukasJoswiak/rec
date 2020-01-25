@@ -1,11 +1,12 @@
 // Copyright 2019 Lukas Joswiak
 
-#include "paxos/replica.hpp"
+#include "process/paxos/replica.hpp"
 
 #include <optional>
 
 #include "google/protobuf/util/message_differencer.h"
 
+namespace process {
 namespace paxos {
 
 Replica::Replica(
@@ -122,3 +123,4 @@ void Replica::Execute(const Command& command) {
 }
 
 }  // namespace paxos
+}  // namespace process

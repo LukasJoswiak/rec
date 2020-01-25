@@ -7,6 +7,7 @@
 Environment::Environment(ConnectionManager& manager, std::string& server_name)
     : manager_(manager),
       server_name_(server_name),
+      echo_(echo_queue_, dispatch_queue_),
       replica_(replica_queue_, dispatch_queue_),
       acceptor_(acceptor_queue_, dispatch_queue_),
       leader_(leader_queue_, dispatch_queue_, server_name) {}
@@ -15,10 +16,13 @@ void Environment::Start() {
   // Start message handler.
   std::thread(&Environment::Dispatcher, this).detach();
 
+  // Spawn echo handler.
+  std::thread(&process::Echo::Run, &echo_).detach();
+
   // Spawn Paxos handlers.
-  std::thread(&paxos::Replica::Run, &replica_).detach();
-  std::thread(&paxos::Acceptor::Run, &acceptor_).detach();
-  std::thread(&paxos::Leader::Run, &leader_).detach();
+  std::thread(&process::paxos::Replica::Run, &replica_).detach();
+  std::thread(&process::paxos::Acceptor::Run, &acceptor_).detach();
+  std::thread(&process::paxos::Leader::Run, &leader_).detach();
 }
 
 void Environment::Handle(const std::string& raw_message) {
@@ -29,6 +33,8 @@ void Environment::Handle(const std::string& raw_message) {
 
 void Environment::Handle(const Message& message) {
   switch (message.type()) {
+    case Message_MessageType_HEARTBEAT:
+      HandleEchoMessage(message);
     case Message_MessageType_REQUEST:
     case Message_MessageType_DECISION:
       HandleReplicaMessage(message);
@@ -47,6 +53,10 @@ void Environment::Handle(const Message& message) {
     default:
       break;
   }
+}
+
+void Environment::HandleEchoMessage(const Message& m) {
+  echo_queue_.push(m);
 }
 
 void Environment::HandleReplicaMessage(const Message& m) {

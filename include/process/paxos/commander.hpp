@@ -7,9 +7,10 @@
 #include <unordered_set>
 #include <utility>
 
-#include "paxos/process.hpp"
+#include "process/process.hpp"
 #include "proto/messages.pb.h"
 
+namespace process {
 namespace paxos {
 
 class Commander : public Process {
@@ -38,5 +39,6 @@ class Commander : public Process {
 };
 
 }  // namespace paxos
+}  // namespace process
 
 #endif  // INCLUDE_PAXOS_COMMANDER_HPP_

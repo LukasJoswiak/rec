@@ -1,11 +1,9 @@
 // Copyright 2019 Lukas Joswiak
 
-#include "paxos/acceptor.hpp"
+#include "process/paxos/acceptor.hpp"
 
-#include <iostream>
-
+namespace process {
 namespace paxos {
-
 
 Acceptor::Acceptor(
     common::SharedQueue<Message>& message_queue,
@@ -76,3 +74,5 @@ void Acceptor::HandleP2A(P2A&& p, const std::string& from) {
 }
 
 }  // namespace paxos
+}  // namespace process
+#include "process/process.hpp"

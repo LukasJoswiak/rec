@@ -1,12 +1,12 @@
 // Copyright 2019 Lukas Joswiak
 
-#include "paxos/commander.hpp"
+#include "process/paxos/commander.hpp"
 
 #include "cm256/cm256.h"
 #include "server/servers.hpp"
 #include "server/code.hpp"
 
-
+namespace process {
 namespace paxos {
 
 Commander::Commander(
@@ -131,3 +131,4 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
 }
 
 }  // namespace paxos
+}  // namespace process

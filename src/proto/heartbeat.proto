@@ -1,5 +1,0 @@
-syntax = "proto3";
-
-message Heartbeat {
-  string server_name = 1;
-}

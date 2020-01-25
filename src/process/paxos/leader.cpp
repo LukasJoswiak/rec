@@ -1,12 +1,12 @@
 // Copyright 2019 Lukas Joswiak
 
-#include "paxos/leader.hpp"
+#include "process/paxos/leader.hpp"
 
-#include <iostream>
 #include <thread>
 
 #include "spdlog/spdlog.h"
 
+namespace process {
 namespace paxos {
 
 Leader::Leader(
@@ -140,3 +140,4 @@ void Leader::SpawnCommander(int slot_number, Command command) {
 }
 
 }  // namespace paxos
+}  // namespace process

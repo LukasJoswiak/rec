@@ -6,23 +6,26 @@ import "proto/utility.proto";
 message Message {
   enum MessageType {
     UNKNOWN = 0;
-    HEARTBEAT = 1;
-    REQUEST = 2;
-    RESPONSE = 3;
-    PROPOSAL = 4;
-    DECISION = 5;
-    ADOPTED = 6;
-    PREEMPTED = 7;
-    PVALUE = 8;
-    P1A = 9;
-    P1B = 10;
-    P2A = 11;
-    P2B = 12;
+    SETUP = 1;
+    HEARTBEAT = 2;
+    REQUEST = 3;
+    RESPONSE = 4;
+    PROPOSAL = 5;
+    DECISION = 6;
+    ADOPTED = 7;
+    PREEMPTED = 8;
+    PVALUE = 9;
+    P1A = 10;
+    P1B = 11;
+    P2A = 12;
+    P2B = 13;
   }
   MessageType type = 1;
   google.protobuf.Any message = 2;
   string from = 3;
 }
+
+message Heartbeat {}
 
 message Request {
   Command command = 1;
