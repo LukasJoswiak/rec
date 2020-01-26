@@ -29,6 +29,9 @@ class Leader : public Process {
   void Handle(Message&& message) override;
 
  private:
+  // Internal message handlers.
+  void HandleStatus(Status&& s, const std::string& from);
+
   void HandleProposal(Proposal&& p, const std::string& from);
   void HandleAdopted(Adopted&& a, const std::string& from);
   void HandlePreempted(Preempted&& p, const std::string& from);
@@ -36,6 +39,19 @@ class Leader : public Process {
   // Handlers used to pass messages on to scout or commander.
   void HandleP1B(Message&& m, const std::string& from);
   void HandleP2B(Message&& m, const std::string& from);
+
+  // Given a list of servers from a protobuf message, returns the principal
+  // server. The principal server is the server with the alphabetically maximum
+  // address.
+  //
+  // For example:
+  //   * servers = ["server1", "server2", "server3"]
+  //   * returns "server3"
+  //
+  // Use this function to identify whether the current server should attempt
+  // to become leader of the Paxos cluster.
+  std::string PrincipalServer(
+      const google::protobuf::RepeatedPtrField<std::string>& servers);
 
   // Spawns and runs a commander on a thread for the given slot number and
   // command.

@@ -24,7 +24,7 @@ Scout::~Scout() {
 }
 
 void Scout::Run() {
-  logger_->trace("spawned");
+  logger_->info("spawned, attempting to become leader");
   P1A p;
   p.set_allocated_ballot_number(new BallotNumber(ballot_number_));
 

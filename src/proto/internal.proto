@@ -1,0 +1,7 @@
+// Definitions for internal messages. Internal messages are messages passed
+// locally between threads and not sent over the network.
+syntax = "proto3";
+
+message Status {
+  repeated string live = 1;
+}

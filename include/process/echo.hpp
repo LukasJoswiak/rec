@@ -30,6 +30,10 @@ class Echo : public Process {
   // Timer function used to check server liveness periodically.
   void HeartbeatCheckTimer();
 
+  // Sends an update message containing live servers. Delivered locally to
+  // another thread, not sent over the network.
+  void SendUpdate();
+
   std::string address_;
 
   // Map of server to whether it has pinged within the last interval. If not,

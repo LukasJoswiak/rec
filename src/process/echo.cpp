@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 
+#include "proto/internal.pb.h"
 #include "proto/messages.pb.h"
 
 namespace {
@@ -47,19 +48,24 @@ void Echo::Handle(Message&& message) {
 }
 
 void Echo::HandleHeartbeat(Heartbeat&& h, const std::string& from) {
+  bool new_server = false;
   if (pinged_.find(from) == pinged_.end()) {
-    // TODO: send message to leader with all online servers.
     logger_->info("{} connected", from);
+    new_server = true;
   }
   pinged_[from] = true;
+
+  if (new_server) {
+    SendUpdate();
+  }
 }
 
 void Echo::HeartbeatTimer() {
-  Message message;
-  message.set_type(Message_MessageType_HEARTBEAT);
-  message.set_from(address_);
+  Message m;
+  m.set_type(Message_MessageType_HEARTBEAT);
+  m.set_from(address_);
 
-  dispatch_queue_.push(std::make_pair(std::nullopt, message));
+  dispatch_queue_.push(std::make_pair(std::nullopt, m));
 
   std::thread([this]() {
     std::this_thread::sleep_for(kHeartbeatInterval);
@@ -68,13 +74,15 @@ void Echo::HeartbeatTimer() {
 }
 
 void Echo::HeartbeatCheckTimer() {
-  for (auto& [key, value] : pinged_) {
-    if (!value) {
-      // TODO: send message to leader with all online servers.
-      logger_->info("{} dead!", key);
-      pinged_.erase(key);
+  for (auto it = pinged_.begin(); it != pinged_.end();) {
+    if (!it->second) {
+      logger_->info("{} disconnected", it->first);
+
+      it = pinged_.erase(it);
+      SendUpdate();
     } else {
-      value = false;
+      it->second = false;
+      ++it;
     }
   }
 
@@ -82,6 +90,19 @@ void Echo::HeartbeatCheckTimer() {
     std::this_thread::sleep_for(kHeartbeatCheckInterval);
     HeartbeatCheckTimer();
   }).detach();
+}
+
+void Echo::SendUpdate() {
+  Status s;
+  for (const auto& it : pinged_) {
+    s.add_live(it.first);
+  }
+
+  Message m;
+  m.set_type(Message_MessageType_STATUS);
+  m.mutable_message()->PackFrom(s);
+
+  dispatch_queue_.push(std::make_pair(address_, m));
 }
 
 }  // namespace process

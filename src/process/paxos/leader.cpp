@@ -5,6 +5,7 @@
 #include <thread>
 
 #include "spdlog/spdlog.h"
+#include "server/servers.hpp"
 
 namespace process {
 namespace paxos {
@@ -44,6 +45,25 @@ void Leader::Handle(Message&& message) {
     HandleP1B(std::move(message), message.from());
   } else if (message.type() == Message_MessageType_P2B) {
     HandleP2B(std::move(message), message.from());
+  } else if (message.type() == Message_MessageType_STATUS) {
+    Status s;
+    message.message().UnpackTo(&s);
+    HandleStatus(std::move(s), message.from());
+  }
+}
+
+void Leader::HandleStatus(Status&& s, const std::string& from) {
+  logger_->debug("received status message");
+  std::string principal = PrincipalServer(s.live());
+
+  if (!active_ && principal == address_ &&
+      s.live_size() > kServers.size() / 2) {
+    // This is the principal server among the alive servers. Attempt to become
+    // leader.
+    scout_ = std::make_shared<paxos::Scout>(scout_message_queue_,
+                                            dispatch_queue_, address_,
+                                            ballot_number_);
+    std::thread(&paxos::Scout::Run, scout_).detach();
   }
 }
 
@@ -118,6 +138,17 @@ void Leader::HandleP2B(Message&& m, const std::string& from) {
 
   auto commander_queue = commander_message_queue_.at(slot_number);
   commander_queue->push(m);
+}
+
+std::string Leader::PrincipalServer(
+    const google::protobuf::RepeatedPtrField<std::string>& servers) {
+  std::string principal;
+  for (const auto& server : servers) {
+    if (server > principal) {
+      principal = server;
+    }
+  }
+  return principal;
 }
 
 void Leader::SpawnCommander(int slot_number, Command command) {

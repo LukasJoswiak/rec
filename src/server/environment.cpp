@@ -48,6 +48,7 @@ void Environment::Handle(const Message& message) {
     case Message_MessageType_PREEMPTED:
     case Message_MessageType_P1B:
     case Message_MessageType_P2B:
+    case Message_MessageType_STATUS:
       HandleLeaderMessage(message);
       break;
     default:
