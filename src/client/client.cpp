@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
   boost::asio::ip::tcp::resolver r(io_context);
   TcpClient client(io_context, client_name, workload);
 
-  client.Start(r.resolve("localhost", "1112"));
+  client.Start(r.resolve("localhost", "1113"));
 
   io_context.run();
 

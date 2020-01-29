@@ -16,6 +16,7 @@ Leader::Leader(
         dispatch_queue,
     std::string& address)
     : Process(message_queue, dispatch_queue),
+      scout_id_(0),
       address_(address),
       active_(false) {
   ballot_number_.set_number(0);
@@ -49,30 +50,54 @@ void Leader::Handle(Message&& message) {
     Status s;
     message.message().UnpackTo(&s);
     HandleStatus(std::move(s), message.from());
+  } else if (message.type() == Message_MessageType_LEADER_CHANGE) {
+    LeaderChange l;
+    message.message().UnpackTo(&l);
+    HandleLeaderChange(std::move(l), message.from());
   }
 }
 
 void Leader::HandleStatus(Status&& s, const std::string& from) {
   logger_->debug("received status message");
-  std::string principal = PrincipalServer(s.live());
 
-  if (!active_ && principal == address_ &&
+  std::string principal = PrincipalServer(s.live());
+  if (!IsLeader() && principal == address_ &&
       s.live_size() > kServers.size() / 2) {
-    // This is the principal server among the alive servers. Attempt to become
-    // leader.
-    scout_ = std::make_shared<paxos::Scout>(scout_message_queue_,
-                                            dispatch_queue_, address_,
-                                            ballot_number_);
-    std::thread(&paxos::Scout::Run, scout_).detach();
+    // Clean up state from previous scout.
+    scouts_.erase(scout_id_);
+    scout_message_queue_.erase(scout_id_);
+
+    // This is the principal server among the alive servers. Increase ballot
+    // number to be above current leader and attempt to become leader.
+    ballot_number_.set_number(leader_ballot_number_.number() + 1);
+    scout_message_queue_[scout_id_] =
+        std::make_shared<common::SharedQueue<Message>>();
+    scouts_.emplace(scout_id_, paxos::Scout(*scout_message_queue_[scout_id_],
+                                            dispatch_queue_, scout_id_, address_,
+                                            ballot_number_));
+    std::thread(&paxos::Scout::Run, &scouts_.at(scout_id_)).detach();
+    ++scout_id_;
+  }
+}
+
+void Leader::HandleLeaderChange(LeaderChange&& l, const std::string& from) {
+  logger_->debug("received leader change with ballot address {}",
+                 l.leader_ballot_number().address());
+
+  leader_ballot_number_ = l.leader_ballot_number();
+  if (active_ && address_ != leader_ballot_number_.address()) {
+    active_ = false;
   }
 }
 
 void Leader::HandleProposal(Proposal&& p, const std::string& from) {
   logger_->debug("received proposal from {}", from);
+
   int slot_number = p.slot_number();
   if (proposals_.find(slot_number) == proposals_.end()) {
     proposals_[slot_number] = p.command();
-    if (active_) {
+    // TODO: Forward to leader?
+    if (IsLeader()) {
       assert(commander_message_queue_.find(slot_number) ==
           commander_message_queue_.end());
       SpawnCommander(slot_number, p.command());
@@ -82,6 +107,7 @@ void Leader::HandleProposal(Proposal&& p, const std::string& from) {
 
 void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
   logger_->debug("received Adopted from {}", from);
+
   if (CompareBallotNumbers(ballot_number_, a.ballot_number()) == 0) {
     logger_->info("{} promoted to leader", address_);
     // Map of slot number -> ballot, used to determine the command to propose
@@ -105,6 +131,7 @@ void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
       SpawnCommander(slot_number, command);
     }
 
+    leader_ballot_number_ = a.ballot_number();
     active_ = true;
   }
 }
@@ -112,20 +139,23 @@ void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
 void Leader::HandlePreempted(Preempted&& p, const std::string& from) {
   logger_->debug("received Preempted from {}", from);
   logger_->info("{} demoted", address_);
-  if (CompareBallotNumbers(ballot_number_, p.ballot_number()) > 0) {
-    ballot_number_.set_number(ballot_number_.number() + 1);
 
-    // Spawn a new scout to begin leader election with updated ballot.
-    scout_ = std::make_shared<paxos::Scout>(scout_message_queue_,
-                                            dispatch_queue_, address_,
-                                            ballot_number_);
-    std::thread(&paxos::Scout::Run, scout_).detach();
-  }
+  // When preempted, set leader equal to preempting server and don't try to
+  // become leader again.
+  leader_ballot_number_ = p.ballot_number();
   active_ = false;
 }
 
 void Leader::HandleP1B(Message&& m, const std::string& from) {
-  scout_message_queue_.push(m);
+  // Deliver the message by adding it to the correct scout message queue.
+  P1B p;
+  m.message().UnpackTo(&p);
+  auto scout_id = p.scout_id();
+
+  if (scout_message_queue_.find(scout_id) != scout_message_queue_.end()) {
+    auto scout_queue = scout_message_queue_.at(p.scout_id());
+    scout_queue->push(m);
+  }
 }
 
 void Leader::HandleP2B(Message&& m, const std::string& from) {
@@ -153,6 +183,7 @@ std::string Leader::PrincipalServer(
 
 void Leader::SpawnCommander(int slot_number, Command command) {
   logger_->trace("spawning commander for slot {}", slot_number);
+
   // Create a SharedQueue for the commander to allow passing of messages to it.
   commander_message_queue_[slot_number] =
       std::make_shared<common::SharedQueue<Message>>();
@@ -163,6 +194,10 @@ void Leader::SpawnCommander(int slot_number, Command command) {
                 address_, ballot_number_, slot_number, command));
   std::thread(&paxos::Commander::Run, &commanders_.at(slot_number))
       .detach();
+}
+
+bool Leader::IsLeader() {
+  return active_ && address_ == leader_ballot_number_.address();
 }
 
 }  // namespace paxos

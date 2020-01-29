@@ -2,6 +2,12 @@
 // locally between threads and not sent over the network.
 syntax = "proto3";
 
+import "proto/utility.proto";
+
 message Status {
   repeated string live = 1;
+}
+
+message LeaderChange {
+  BallotNumber leader_ballot_number = 1;
 }

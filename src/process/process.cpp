@@ -21,12 +21,12 @@ void Process::Run() {
     auto front = message_queue_.front();
     message_queue_.pop();
 
+    // Call handler in derived class.
+    Handle(std::move(front));
+
     if (exit_) {
       return;
     }
-
-    // Call handler in derived class.
-    Handle(std::move(front));
   }
 }
 

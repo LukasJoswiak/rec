@@ -19,13 +19,16 @@ class Acceptor : public Process {
   Acceptor(
       common::SharedQueue<Message>& message_queue,
       common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
-          dispatch_queue);
+          dispatch_queue,
+      std::string& address);
 
   void Handle(Message&& message) override;
 
  private:
   void HandleP1A(P1A&& p, const std::string& from);
   void HandleP2A(P2A&& p, const std::string& from);
+
+  std::string address_;
 
   BallotNumber ballot_number_;
   std::unordered_set<PValue, PValueHash, PValueEqualTo> accepted_;

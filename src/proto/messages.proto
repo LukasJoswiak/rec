@@ -9,6 +9,7 @@ message Message {
     UNKNOWN = 0;
     SETUP = 1;
     HEARTBEAT = 2;
+    // PAXOS MESSAGES
     REQUEST = 3;
     RESPONSE = 4;
     PROPOSAL = 5;
@@ -20,7 +21,9 @@ message Message {
     P1B = 11;
     P2A = 12;
     P2B = 13;
+    // INTERNAL MESSAGES
     STATUS = 14;
+    LEADER_CHANGE = 15;
   }
   MessageType type = 1;
   google.protobuf.Any message = 2;
@@ -59,12 +62,14 @@ message Preempted {
 }
 
 message P1A {
-  BallotNumber ballot_number = 1;
+  int64 scout_id = 1;
+  BallotNumber ballot_number = 2;
 }
 
 message P1B {
-  BallotNumber ballot_number = 1;
-  repeated PValue accepted = 2;
+  int64 scout_id = 1;
+  BallotNumber ballot_number = 2;
+  repeated PValue accepted = 3;
 }
 
 message P2A {

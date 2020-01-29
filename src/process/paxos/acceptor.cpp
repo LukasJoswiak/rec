@@ -1,6 +1,7 @@
 // Copyright 2019 Lukas Joswiak
 
 #include "process/paxos/acceptor.hpp"
+#include "proto/internal.pb.h"
 
 namespace process {
 namespace paxos {
@@ -8,8 +9,10 @@ namespace paxos {
 Acceptor::Acceptor(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
-        dispatch_queue)
-    : Process(message_queue, dispatch_queue) {
+        dispatch_queue,
+    std::string& address)
+    : Process(message_queue, dispatch_queue),
+      address_(address) {
   logger_ = spdlog::get("acceptor");
 }
 
@@ -27,11 +30,24 @@ void Acceptor::Handle(Message&& message) {
 
 void Acceptor::HandleP1A(P1A&& p, const std::string& from) {
   logger_->debug("received P1A from {}", from);
+
   if (CompareBallotNumbers(ballot_number_, p.ballot_number()) > 0) {
     ballot_number_ = p.ballot_number();
+
+    // Notify the leader that this servers current view of the leader has
+    // changed. The leader may need to start leader election.
+    LeaderChange l;
+    l.set_allocated_leader_ballot_number(new BallotNumber(ballot_number_));
+
+    Message m;
+    m.set_type(Message_MessageType_LEADER_CHANGE);
+    m.mutable_message()->PackFrom(l);
+
+    dispatch_queue_.push(std::make_pair(address_, m));
   }
 
   P1B p1b;
+  p1b.set_scout_id(p.scout_id());
   p1b.set_allocated_ballot_number(new BallotNumber(ballot_number_));
   p1b.clear_accepted();
   for (const auto& pvalue : accepted_) {
@@ -52,6 +68,7 @@ void Acceptor::HandleP1A(P1A&& p, const std::string& from) {
 
 void Acceptor::HandleP2A(P2A&& p, const std::string& from) {
   logger_->debug("received P2A from {}", from);
+
   if (CompareBallotNumbers(ballot_number_, p.ballot_number()) == 0) {
     PValue pvalue;
     pvalue.set_allocated_ballot_number(new BallotNumber(p.ballot_number()));

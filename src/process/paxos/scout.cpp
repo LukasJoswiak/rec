@@ -11,8 +11,9 @@ Scout::Scout(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
-    std::string& leader, BallotNumber& ballot_number)
+    int scout_id, std::string& leader, BallotNumber& ballot_number)
     : Process(message_queue, dispatch_queue),
+      scout_id_(scout_id),
       leader_(leader),
       ballot_number_(ballot_number) {
   logger_ = spdlog::get("scout");
@@ -24,8 +25,8 @@ Scout::~Scout() {
 }
 
 void Scout::Run() {
-  logger_->info("spawned, attempting to become leader");
   P1A p;
+  p.set_scout_id(scout_id_);
   p.set_allocated_ballot_number(new BallotNumber(ballot_number_));
 
   Message m;
@@ -49,6 +50,7 @@ void Scout::Handle(Message&& message) {
 
 void Scout::HandleP1B(P1B&& p, const std::string& from) {
   logger_->debug("received P1B from {}", from);
+
   if (CompareBallotNumbers(ballot_number_, p.ballot_number()) == 0) {
     received_from_.insert(from);
     logger_->trace("received {}/{} responses", received_from_.size(),

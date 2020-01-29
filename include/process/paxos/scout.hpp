@@ -20,7 +20,7 @@ class Scout : public Process {
       common::SharedQueue<Message>& message_queue,
       common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
           dispatch_queue,
-      std::string& leader, BallotNumber& ballot_number);
+      int scout_id, std::string& leader, BallotNumber& ballot_number);
   ~Scout() override;
 
   void Run() override;
@@ -33,6 +33,8 @@ class Scout : public Process {
 
  private:
   void HandleP1B(P1B&& p, const std::string& from);
+
+  int scout_id_;
 
   std::string leader_;
   BallotNumber ballot_number_;

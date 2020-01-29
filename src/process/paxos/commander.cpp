@@ -24,7 +24,7 @@ Commander::Commander(
 }
 
 Commander::~Commander() {
-  logger_->trace("exiting slot {}", slot_number_);
+  logger_->trace("exiting for slot {}", slot_number_);
   exit_ = true;
 }
 
@@ -100,7 +100,8 @@ void Commander::Handle(Message&& message) {
 
 void Commander::HandleP2B(P2B&& p, const std::string& from) {
   logger_->debug("received P2B from {} for slot {}", from, slot_number_);
-  if (CompareBallotNumbers(ballot_number_, p.ballot_number()) == 0) {
+  int compared_ballots = CompareBallotNumbers(ballot_number_, p.ballot_number());
+  if (compared_ballots == 0) {
     received_from_.insert(from);
 
     if (received_from_.size() > kServers.size() / 2) {
@@ -116,7 +117,10 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
       dispatch_queue_.push(std::make_pair(std::nullopt, m));
       exit_ = true;
     }
-  } else {
+  } else if (compared_ballots > 0) {
+    // Only preempt if the message ballot is larger than this servers ballot,
+    // which means another server has a higher ballot number and should be
+    // leader.
     Preempted p;
     p.set_allocated_ballot_number(new BallotNumber(p.ballot_number()));
 

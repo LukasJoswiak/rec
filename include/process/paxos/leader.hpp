@@ -31,6 +31,7 @@ class Leader : public Process {
  private:
   // Internal message handlers.
   void HandleStatus(Status&& s, const std::string& from);
+  void HandleLeaderChange(LeaderChange&& l, const std::string& from);
 
   void HandleProposal(Proposal&& p, const std::string& from);
   void HandleAdopted(Adopted&& a, const std::string& from);
@@ -57,8 +58,16 @@ class Leader : public Process {
   // command.
   void SpawnCommander(int slot_number, Command command);
 
-  std::shared_ptr<paxos::Scout> scout_;
-  common::SharedQueue<Message> scout_message_queue_;
+  // Returns true if this server is the leader.
+  bool IsLeader();
+
+  // Since scouts are spawned on threads, it is possible to have multiple active
+  // scouts at once. Use maps to keep track of a separate SharedQueue per scout.
+  // When a new scout is spawned, old scouts will be killed as soon as possible.
+  int scout_id_;
+  std::unordered_map<int, paxos::Scout> scouts_;
+  std::unordered_map<int, std::shared_ptr<common::SharedQueue<Message>>>
+      scout_message_queue_;
 
   // Track each spawned commander, along with a SharedQueue for message passing
   // to that commander. Commanders are always spawned for a specific slot
@@ -69,6 +78,10 @@ class Leader : public Process {
 
   std::string address_;
   BallotNumber ballot_number_;
+  // TODO: Might be able to get rid of leader_ballot_number_ if servers retry
+  // leader election if it fails (as long as it is still the principal)..
+  // Ballot of the server this server thinks is the leader.
+  BallotNumber leader_ballot_number_;
   bool active_;
 
   // Map of slot number -> Command proposed for the slot.
