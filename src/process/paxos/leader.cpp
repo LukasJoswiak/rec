@@ -2,6 +2,7 @@
 
 #include "process/paxos/leader.hpp"
 
+#include <functional>
 #include <thread>
 
 #include "spdlog/spdlog.h"
@@ -73,9 +74,13 @@ void Leader::HandleStatus(Status&& s, const std::string& from) {
     scout_message_queue_[scout_id_] =
         std::make_shared<common::SharedQueue<Message>>();
     scouts_.emplace(scout_id_, paxos::Scout(*scout_message_queue_[scout_id_],
-                                            dispatch_queue_, scout_id_, address_,
+                                            dispatch_queue_, address_,
                                             ballot_number_));
-    std::thread(&paxos::Scout::Run, &scouts_.at(scout_id_)).detach();
+    // This syntax is necessary to refer to the correct overloaded Scout::Run
+    // function.
+    // See https://stackoverflow.com/a/14306975/986991.
+    std::thread(static_cast<void (paxos::Scout::*)(int)>(&paxos::Scout::Run),
+                &scouts_.at(scout_id_), scout_id_).detach();
     ++scout_id_;
   }
 }
@@ -86,6 +91,7 @@ void Leader::HandleLeaderChange(LeaderChange&& l, const std::string& from) {
 
   leader_ballot_number_ = l.leader_ballot_number();
   if (active_ && address_ != leader_ballot_number_.address()) {
+    logger_->info("{} demoted", address_);
     active_ = false;
   }
 }
