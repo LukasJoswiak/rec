@@ -9,14 +9,14 @@
 #include <utility>
 
 #include "process/paxos/commander.hpp"
-#include "process/process.hpp"
+#include "process/paxos/paxos_process.hpp"
 #include "process/paxos/scout.hpp"
 #include "proto/messages.pb.h"
 
 namespace process {
 namespace paxos {
 
-class Leader : public Process {
+class Leader : public PaxosProcess {
  public:
   Leader(
       common::SharedQueue<Message>& message_queue,

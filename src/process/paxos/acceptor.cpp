@@ -11,7 +11,7 @@ Acceptor::Acceptor(
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
     std::string& address)
-    : Process(message_queue, dispatch_queue),
+    : PaxosProcess(message_queue, dispatch_queue),
       address_(address) {
   logger_ = spdlog::get("acceptor");
 }

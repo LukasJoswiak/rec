@@ -12,7 +12,7 @@ Scout::Scout(
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
     std::string& leader, BallotNumber& ballot_number)
-    : Process(message_queue, dispatch_queue),
+    : PaxosProcess(message_queue, dispatch_queue),
       leader_(leader),
       ballot_number_(ballot_number) {
   logger_ = spdlog::get("scout");

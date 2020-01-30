@@ -7,13 +7,13 @@
 #include <unordered_set>
 #include <utility>
 
-#include "process/process.hpp"
+#include "process/paxos/paxos_process.hpp"
 #include "proto/messages.pb.h"
 
 namespace process {
 namespace paxos {
 
-class Commander : public Process {
+class Commander : public PaxosProcess {
  public:
   Commander(
       common::SharedQueue<Message>& message_queue,

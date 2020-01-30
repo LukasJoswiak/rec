@@ -16,7 +16,7 @@ Leader::Leader(
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
     std::string& address)
-    : Process(message_queue, dispatch_queue),
+    : PaxosProcess(message_queue, dispatch_queue),
       scout_id_(0),
       address_(address),
       active_(false) {

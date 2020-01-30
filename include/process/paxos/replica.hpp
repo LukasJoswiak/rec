@@ -8,13 +8,13 @@
 #include <unordered_map>
 #include <utility>
 
-#include "process/process.hpp"
+#include "process/paxos/paxos_process.hpp"
 #include "proto/messages.pb.h"
 
 namespace process {
 namespace paxos {
 
-class Replica : public Process {
+class Replica : public PaxosProcess {
  public:
   Replica(common::SharedQueue<Message>& message_queue,
           common::SharedQueue<std::pair<std::optional<std::string>, Message>>&

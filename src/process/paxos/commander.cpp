@@ -15,7 +15,7 @@ Commander::Commander(
         dispatch_queue,
     std::string& leader, BallotNumber& ballot_number, int slot_number,
     Command& command)
-    : Process(message_queue, dispatch_queue),
+    : PaxosProcess(message_queue, dispatch_queue),
       leader_(leader),
       ballot_number_(ballot_number),
       slot_number_(slot_number),

@@ -30,16 +30,4 @@ void Process::Run() {
   }
 }
 
-int Process::CompareBallotNumbers(const BallotNumber& b1,
-                                  const BallotNumber& b2) {
-  if (b1.number() != b2.number()) {
-    return b2.number() - b1.number();
-  } else {
-    if (b1.address().size() == 0 && b2.address().size() > 0) {
-      return 1;
-    }
-    return b2.address().compare(b1.address());
-  }
-}
-
 }  // namespace process

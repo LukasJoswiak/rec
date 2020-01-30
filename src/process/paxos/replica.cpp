@@ -13,7 +13,7 @@ Replica::Replica(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue)
-    : Process(message_queue, dispatch_queue),
+    : PaxosProcess(message_queue, dispatch_queue),
       slot_in_(1),
       slot_out_(1) {
   logger_ = spdlog::get("replica");

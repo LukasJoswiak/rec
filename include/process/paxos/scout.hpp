@@ -8,13 +8,13 @@
 #include <utility>
 
 #include "process/paxos/compare.hpp"
-#include "process/process.hpp"
+#include "process/paxos/paxos_process.hpp"
 #include "proto/messages.pb.h"
 
 namespace process {
 namespace paxos {
 
-class Scout : public Process {
+class Scout : public PaxosProcess {
  public:
   Scout(
       common::SharedQueue<Message>& message_queue,

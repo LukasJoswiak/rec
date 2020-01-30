@@ -1,7 +1,7 @@
 // Copyright 2019 Lukas Joswiak
 
-#ifndef INCLUDE_PAXOS_PROCESS_HPP_
-#define INCLUDE_PAXOS_PROCESS_HPP_
+#ifndef INCLUDE_PROCESS_PROCESS_HPP_
+#define INCLUDE_PROCESS_PROCESS_HPP_
 
 #include <string>
 #include <utility>
@@ -31,13 +31,6 @@ class Process {
   virtual void Handle(Message&& message) = 0;
 
  protected:
-  // TODO: Move to PaxosProcess derived class. Paxos message handlers should
-  // inherit from PaxosProcess.
-  // Returns a negative number if b1 > b2, a positive number if b1 < b2, or
-  // zero if b1 equals b2. Ballot numbers are totally ordered and are compared
-  // first using their numbers, then using the server address for tie-breakers.
-  int CompareBallotNumbers(const BallotNumber& b1, const BallotNumber& b2);
-
   // As messages for the process are received, they are added to this queue.
   common::SharedQueue<Message>& message_queue_;
 
@@ -53,4 +46,4 @@ class Process {
 
 }  // namespace process
 
-#endif  // INCLUDE_PAXOS_PROCESS_HPP_
+#endif  // INCLUDE_PROCESS_PROCESS_HPP_
