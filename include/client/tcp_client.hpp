@@ -1,5 +1,3 @@
-// Copyright 2019 Lukas Joswiak
-
 #ifndef INCLUDE_CLIENT_TCP_CLIENT_HPP_
 #define INCLUDE_CLIENT_TCP_CLIENT_HPP_
 

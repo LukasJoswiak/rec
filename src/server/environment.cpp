@@ -1,5 +1,3 @@
-// Copyright 2019 Lukas Joswiak
-
 #include "server/environment.hpp"
 
 #include "server/connection_manager.hpp"

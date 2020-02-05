@@ -1,5 +1,3 @@
-// Copyright 2020 Lukas Joswiak
-
 #include "process/paxos/paxos_process.hpp"
 
 namespace process {

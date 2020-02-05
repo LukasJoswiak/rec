@@ -1,5 +1,3 @@
-// Copyright 2019 Lukas Joswiak
-
 #include "process/paxos/commander.hpp"
 
 #include "cm256/cm256.h"

@@ -1,5 +1,3 @@
-// Copyright 2019 Lukas Joswiak
-
 #ifndef INCLUDE_SERVER_TCP_SERVER_HPP_
 #define INCLUDE_SERVER_TCP_SERVER_HPP_
 

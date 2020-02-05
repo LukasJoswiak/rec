@@ -1,5 +1,3 @@
-// Copyright 2019 Lukas Joswiak
-
 #include "server/tcp_connection.hpp"
 
 #include <iostream>

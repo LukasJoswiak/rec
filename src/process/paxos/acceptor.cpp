@@ -1,5 +1,3 @@
-// Copyright 2019 Lukas Joswiak
-
 #include "process/paxos/acceptor.hpp"
 #include "proto/internal.pb.h"
 

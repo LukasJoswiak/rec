@@ -1,5 +1,3 @@
-// Copyright 2019 Lukas Joswiak
-
 #ifndef INCLUDE_SERVER_SERVERS_HPP_
 #define INCLUDE_SERVER_SERVERS_HPP_
 

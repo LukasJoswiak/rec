@@ -1,5 +1,3 @@
-// Copyright 2020 Lukas Joswiak
-
 #ifndef INCLUDE_PAXOS_PROCESS_HPP_
 #define INCLUDE_PAXOS_PROCESS_HPP_
 

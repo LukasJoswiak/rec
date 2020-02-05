@@ -1,5 +1,3 @@
-// Copyright 2019 Lukas Joswiak
-
 #ifndef INCLUDE_PAXOS_SCOUT_HPP_
 #define INCLUDE_PAXOS_SCOUT_HPP_
 

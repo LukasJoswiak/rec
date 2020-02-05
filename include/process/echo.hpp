@@ -1,5 +1,3 @@
-// Copyright 2020 Lukas Joswiak
-
 #ifndef INCLUDE_PROCESS_ECHO_HPP_
 #define INCLUDE_PROCESS_ECHO_HPP_
 

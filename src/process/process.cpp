@@ -1,5 +1,3 @@
-// Copyright 2019 Lukas Joswiak
-
 #include "process/process.hpp"
 
 #include <thread>

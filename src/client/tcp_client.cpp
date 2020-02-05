@@ -1,5 +1,3 @@
-// Copyright 2019 Lukas Joswiak
-
 #include "client/tcp_client.hpp"
 
 #include <iostream>
