@@ -62,24 +62,9 @@ void Leader::HandleStatus(Status&& s, const std::string& from) {
   std::string principal = PrincipalServer(s.live());
   if (!IsLeader() && principal == address_ &&
       s.live_size() > kServers.size() / 2) {
-    // Clean up state from previous scout.
-    scouts_.erase(scout_id_);
-    scout_message_queue_.erase(scout_id_);
-
     // This is the principal server among the alive servers. Increase ballot
     // number to be above current leader and attempt to become leader.
-    ballot_number_.set_number(leader_ballot_number_.number() + 1);
-    scout_message_queue_[scout_id_] =
-        std::make_shared<common::SharedQueue<Message>>();
-    scouts_.emplace(scout_id_, paxos::Scout(*scout_message_queue_[scout_id_],
-                                            dispatch_queue_, address_,
-                                            ballot_number_));
-    // This syntax is necessary to refer to the correct overloaded Scout::Run
-    // function.
-    // See https://stackoverflow.com/a/14306975/986991.
-    std::thread(static_cast<void (paxos::Scout::*)(int)>(&paxos::Scout::Run),
-                &scouts_.at(scout_id_), scout_id_).detach();
-    ++scout_id_;
+    SpawnScout(leader_ballot_number_.number() + 1);
   }
 }
 
@@ -144,10 +129,17 @@ void Leader::HandlePreempted(Preempted&& p, const std::string& from) {
   logger_->debug("received Preempted from {}", from);
   logger_->info("{} demoted", address_);
 
-  // When preempted, set leader equal to preempting server and don't try to
-  // become leader again.
-  leader_ballot_number_ = p.ballot_number();
-  active_ = false;
+  if (p.ballot_number().address() < address_) {
+    // This server has a higher address than the ballot from the server we were
+    // preempted by, so try to become leader again with a higher ballot.
+    SpawnScout(std::max(ballot_number_.number(),
+                        p.ballot_number().number()) + 1);
+  } else {
+    // Preempted by a server with a higher address. Set leader equal to address
+    // in preempting ballot and don't try to become leader again.
+    leader_ballot_number_ = p.ballot_number();
+    active_ = false;
+  }
 }
 
 void Leader::HandleP1B(Message&& m, const std::string& from) {
@@ -183,6 +175,29 @@ std::string Leader::PrincipalServer(
     }
   }
   return principal;
+}
+
+void Leader::SpawnScout(int ballot_number) {
+  logger_->trace("spawning scout with ballot number {}", ballot_number);
+
+  // Clean up state from previous scout.
+  scouts_.erase(scout_id_);
+  scout_message_queue_.erase(scout_id_);
+
+  ballot_number_.set_number(ballot_number);
+
+  // Create a new shared queue to pass messages to the scout.
+  scout_message_queue_[scout_id_] =
+      std::make_shared<common::SharedQueue<Message>>();
+  scouts_.emplace(scout_id_, paxos::Scout(*scout_message_queue_[scout_id_],
+                                          dispatch_queue_, address_,
+                                          ballot_number_));
+  // This syntax is necessary to refer to the correct overloaded Scout::Run
+  // function.
+  // See https://stackoverflow.com/a/14306975/986991.
+  std::thread(static_cast<void (paxos::Scout::*)(int)>(&paxos::Scout::Run),
+              &scouts_.at(scout_id_), scout_id_).detach();
+  ++scout_id_;
 }
 
 void Leader::SpawnCommander(int slot_number, Command command) {

@@ -52,6 +52,10 @@ class Leader : public PaxosProcess {
   std::string PrincipalServer(
       const google::protobuf::RepeatedPtrField<std::string>& servers);
 
+  // Spawns and runs a scout on a thread with the given ballot number. Cleans up
+  // any state associated with the previous scout.
+  void SpawnScout(int ballot_number);
+
   // Spawns and runs a commander on a thread for the given slot number and
   // command.
   void SpawnCommander(int slot_number, Command command);
