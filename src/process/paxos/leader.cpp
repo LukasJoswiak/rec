@@ -192,10 +192,18 @@ void Leader::SpawnCommander(int slot_number, Command command) {
   commander_message_queue_[slot_number] =
       std::make_shared<common::SharedQueue<Message>>();
 
+  // If a commander exists for this slot, remove it so a new commander can be
+  // created.
+  if (commanders_.find(slot_number) != commanders_.end()) {
+    commanders_.erase(slot_number);
+  }
+
   // Create a commander and run it on its own thread.
-  commanders_.emplace(slot_number,
+  auto pair = commanders_.emplace(slot_number,
       Commander(*commander_message_queue_[slot_number], dispatch_queue_,
                 address_, ballot_number_, slot_number, command));
+  // Make sure the new commander was successfully inserted.
+  assert(std::get<1>(pair) == true);
   std::thread(&paxos::Commander::Run, &commanders_.at(slot_number))
       .detach();
 }
