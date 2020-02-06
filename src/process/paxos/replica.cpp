@@ -89,6 +89,20 @@ void Replica::Execute(const Command& command) {
                                                            command)) {
       logger_->debug("already executed command for slot {}, performing no-op",
                      i);
+
+      std::string client = decisions_.at(i).client();
+      std::string value = values_.at(i);
+
+      Response r;
+      r.set_value(value);
+
+      Message m;
+      m.set_type(Message_MessageType_RESPONSE);
+      m.mutable_message()->PackFrom(r);
+
+      logger_->info("resending response to {}", client);
+      dispatch_queue_.push(std::make_pair(command.client(), m));
+
       ++slot_out_;
       return;
     }
@@ -106,6 +120,7 @@ void Replica::Execute(const Command& command) {
       value = store_.at(command.key());
     }
   }
+  values_[slot_out_] = value;
 
   Response r;
   r.set_value(value);

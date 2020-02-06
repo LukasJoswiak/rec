@@ -30,8 +30,11 @@ class Replica : public PaxosProcess {
   // if the command has already been executed.
   void Execute(const Command& command);
 
+  // TODO: Move to separate application.
   // Key-value store for the application.
   std::unordered_map<std::string, std::string> store_;
+  // Map of slot to result of executed command.
+  std::unordered_map<int, std::string> values_;
 
   int slot_in_;
   int slot_out_;

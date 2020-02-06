@@ -10,7 +10,7 @@ PaxosProcess::PaxosProcess(
     : Process(message_queue, dispatch_queue) {}
 
 int PaxosProcess::CompareBallotNumbers(const BallotNumber& b1,
-                                  const BallotNumber& b2) {
+                                       const BallotNumber& b2) {
   if (b1.number() != b2.number()) {
     return b2.number() - b1.number();
   } else {

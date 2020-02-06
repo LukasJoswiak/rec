@@ -62,9 +62,9 @@ void Scout::HandleP1B(P1B&& p, const std::string& from) {
       Adopted a;
       a.set_allocated_ballot_number(new BallotNumber(ballot_number_));
 
-      // TODO: Update to work with partial, erasure-coded values.
       // If any acceptors have accepted a value for the current ballot, we must
       // propose the associated command.
+      // TODO: Update to work with partial, erasure-coded values.
       for (const auto& pvalue : pvalues_) {
         PValue* new_pvalue = a.add_accepted();
         new_pvalue->set_allocated_ballot_number(
