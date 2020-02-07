@@ -10,8 +10,9 @@ namespace paxos {
 Replica::Replica(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
-        dispatch_queue)
-    : PaxosProcess(message_queue, dispatch_queue),
+        dispatch_queue,
+    std::string& address)
+    : PaxosProcess(message_queue, dispatch_queue, address),
       slot_in_(1),
       slot_out_(1) {
   logger_ = spdlog::get("replica");
@@ -26,39 +27,60 @@ void Replica::Handle(Message&& message) {
     Decision d;
     message.message().UnpackTo(&d);
     HandleDecision(std::move(d), message.from());
+  } else if (message.type() == Message_MessageType_LEADER_CHANGE) {
+    LeaderChange l;
+    message.message().UnpackTo(&l);
+    HandleLeaderChange(std::move(l), message.from());
   }
 }
 
 void Replica::HandleRequest(Request&& r, const std::string& from) {
-  requests_.push(r.command());
-  Propose();
+  if (address_ == leader_) {
+    // Propose command if this server thinks it is the leader.
+    requests_.push(r.command());
+    Propose();
+  } else if (leader_.size() > 0) {
+    // Forward request to leader if it is known.
+    logger_->debug("forwarding request to leader {}", leader_);
+
+    Message m;
+    m.set_type(Message_MessageType_REQUEST);
+    m.mutable_message()->PackFrom(r);
+
+    dispatch_queue_.push(std::make_pair(leader_, m));
+  }
 }
 
 void Replica::HandleDecision(Decision&& d, const std::string& from) {
   int slot_number = d.slot_number();
   logger_->debug("received Decision for slot {}", slot_number);
 
-  decisions_[slot_number] = d.command();
-  while (decisions_.find(slot_out_) != decisions_.end()) {
-    if (proposals_.find(slot_out_) != proposals_.end()) {
-      // If this replica proposed a different command than the one that was
-      // chosen, add the command to the end of the list of proposals so it will
-      // be retried.
-      if (!google::protobuf::util::MessageDifferencer::Equals(
-            proposals_[slot_out_],
-            decisions_[slot_out_])) {
-        requests_.push(proposals_[slot_out_]);
+  if (address_ == leader_) {
+    // Only the leader executes commands because only the leader stores the
+    // entire command. Followers each store smaller erasure coded chunks.
+    // decisions_[slot_number] = d.command();
+    decisions_[slot_number] = proposals_[slot_number];
+    while (decisions_.find(slot_out_) != decisions_.end()) {
+      if (proposals_.find(slot_out_) != proposals_.end()) {
+        proposals_.erase(slot_out_);
       }
 
-      proposals_.erase(slot_out_);
+      Execute(decisions_[slot_number]);
+      ++slot_out_;
     }
-
-    Execute(d.command());
-    ++slot_out_;
   }
 }
 
+void Replica::HandleLeaderChange(LeaderChange&& l, const std::string& from) {
+  logger_->debug("received leader change with ballot address {}",
+                 l.leader_ballot_number().address());
+  leader_ = l.leader_ballot_number().address();
+}
+
 void Replica::Propose() {
+  // Propose should only be called on the leader.
+  assert(leader_ == address_);
+
   while (!requests_.empty()) {
     if (decisions_.find(slot_in_) == decisions_.end()) {
       auto command = requests_.front();
@@ -80,10 +102,9 @@ void Replica::Propose() {
       m.set_type(Message_MessageType_PROPOSAL);
       m.mutable_message()->PackFrom(proposal);
 
-      // Send proposal to all servers for now.
-      // TODO: only send proposal to leaders.
+      // Send proposal to leader thread.
       logger_->debug("proposing command for slot {}", slot_in_);
-      dispatch_queue_.push(std::make_pair(std::nullopt, m));
+      dispatch_queue_.push(std::make_pair(address_, m));
     }
 
     ++slot_in_;

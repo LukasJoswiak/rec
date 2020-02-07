@@ -49,7 +49,6 @@ message Proposal {
 
 message Decision {
   int64 slot_number = 1;
-  Command command = 2;
 }
 
 message Adopted {
