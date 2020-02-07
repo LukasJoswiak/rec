@@ -10,6 +10,7 @@
 
 int main(int argc, char** argv) {
   std::string client_name = argv[1];
+  std::string server_port = argv[2];
   // Create a workload.
   std::deque<Command> workload;
 
@@ -50,7 +51,7 @@ int main(int argc, char** argv) {
   boost::asio::ip::tcp::resolver r(io_context);
   TcpClient client(io_context, client_name, workload);
 
-  client.Start(r.resolve("localhost", "1113"));
+  client.Start(r.resolve("localhost", server_port));
 
   io_context.run();
 

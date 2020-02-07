@@ -9,6 +9,7 @@
 #include "process/paxos/commander.hpp"
 #include "process/paxos/paxos_process.hpp"
 #include "process/paxos/scout.hpp"
+#include "proto/internal.pb.h"
 #include "proto/messages.pb.h"
 
 namespace process {

@@ -18,6 +18,9 @@ CLIENT_OBJ = $(CLIENT_SRC:$(SRCDIR)/client/%.cpp=$(BUILDDIR)/%.o)
 REC_SRC = $(wildcard $(SRCDIR)/server/*.cpp)
 REC_OBJ = $(REC_SRC:$(SRCDIR)/server/%.cpp=$(BUILDDIR)/%.o)
 
+KVSTORE_SRC = $(wildcard $(SRCDIR)/kvstore/*.cpp)
+KVSTORE_OBJ = $(KVSTORE_SRC:$(SRCDIR)/kvstore/%.cpp=$(BUILDDIR)/%.o)
+
 PROCESS_SRC = $(wildcard $(SRCDIR)/process/*.cpp)
 PROCESS_OBJ = $(PROCESS_SRC:$(SRCDIR)/process/%.cpp=$(BUILDDIR)/%.o)
 
@@ -46,13 +49,17 @@ $(BUILDDIR)/%.o: $(SRCDIR)/client/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Replica (rec) build rules.
-$(BINDIR)/rec: $(PROTO_OBJ) $(PROCESS_OBJ) $(PAXOS_OBJ) $(REC_OBJ) $(BUILDDIR)/cm256.o $(BUILDDIR)/gf256.o
+$(BINDIR)/rec: $(PROTO_OBJ) $(PROCESS_OBJ) $(PAXOS_OBJ) $(KVSTORE_OBJ) $(REC_OBJ) $(BUILDDIR)/cm256.o $(BUILDDIR)/gf256.o
 	$(CXX) $^ -o $@ $(LIBS)
 
 # Rebuild if any depedencies have changed (including header files).
 -include $(REC_OBJ:.o=.d)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/server/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+# Key-value store build rules.
+$(BUILDDIR)/%.o: $(SRCDIR)/kvstore/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Process build rules.

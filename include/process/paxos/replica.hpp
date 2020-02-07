@@ -8,6 +8,7 @@
 
 #include "process/paxos/paxos_process.hpp"
 #include "proto/messages.pb.h"
+#include "kvstore/application.hpp"
 
 namespace process {
 namespace paxos {
@@ -26,15 +27,10 @@ class Replica : public PaxosProcess {
 
   void Propose();
 
-  // Executes the given command at slot number slot_out_, or performs a no-op
-  // if the command has already been executed.
+  // Executes the given command and sends a reply to the client.
   void Execute(const Command& command);
 
-  // TODO: Move to separate application.
-  // Key-value store for the application.
-  std::unordered_map<std::string, std::string> store_;
-  // Map of slot to result of executed command.
-  std::unordered_map<int, std::string> values_;
+  kvstore::Application app_;
 
   int slot_in_;
   int slot_out_;

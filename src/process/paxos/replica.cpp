@@ -54,6 +54,7 @@ void Replica::HandleDecision(Decision&& d, const std::string& from) {
     }
 
     Execute(d.command());
+    ++slot_out_;
   }
 }
 
@@ -62,6 +63,12 @@ void Replica::Propose() {
     if (decisions_.find(slot_in_) == decisions_.end()) {
       auto command = requests_.front();
       requests_.pop();
+
+      if (app_.Executed(command)) {
+        logger_->debug("already executed command, resending response");
+        Execute(command);
+        continue;
+      }
 
       proposals_[slot_in_] = command;
 
@@ -77,62 +84,24 @@ void Replica::Propose() {
       // TODO: only send proposal to leaders.
       logger_->debug("proposing command for slot {}", slot_in_);
       dispatch_queue_.push(std::make_pair(std::nullopt, m));
-
-      ++slot_in_;
     }
+
+    ++slot_in_;
   }
 }
 
 void Replica::Execute(const Command& command) {
-  for (int i = 1; i < slot_out_; ++i) {
-    if (google::protobuf::util::MessageDifferencer::Equals(decisions_.at(i),
-                                                           command)) {
-      logger_->debug("already executed command for slot {}, performing no-op",
-                     i);
+  logger_->info("executing command");
+  if (auto response = app_.Execute(command)) {
+    Message m;
+    m.set_type(Message_MessageType_RESPONSE);
+    m.mutable_message()->PackFrom(*response);
 
-      std::string client = decisions_.at(i).client();
-      std::string value = values_.at(i);
-
-      Response r;
-      r.set_value(value);
-
-      Message m;
-      m.set_type(Message_MessageType_RESPONSE);
-      m.mutable_message()->PackFrom(r);
-
-      logger_->info("resending response to {}", client);
-      dispatch_queue_.push(std::make_pair(command.client(), m));
-
-      ++slot_out_;
-      return;
-    }
+    logger_->info("sending response to {}", command.client());
+    dispatch_queue_.push(std::make_pair(command.client(), m));
+  } else {
+    logger_->debug("failed to execute command");
   }
-  logger_->info("executing command for slot {}", slot_out_);
-
-  std::string value;
-  if (command.operation() == Command_Operation_GET) {
-    if (store_.find(command.key()) != store_.end()) {
-      value = store_.at(command.key());
-    }
-  } else if (command.operation() == Command_Operation_PUT) {
-    auto result = store_.insert({command.key(), command.value()});
-    if (std::get<1>(result)) {
-      value = store_.at(command.key());
-    }
-  }
-  values_[slot_out_] = value;
-
-  Response r;
-  r.set_value(value);
-
-  Message m;
-  m.set_type(Message_MessageType_RESPONSE);
-  m.mutable_message()->PackFrom(r);
-
-  logger_->info("sending response to {}", command.client());
-  dispatch_queue_.push(std::make_pair(command.client(), m));
-
-  ++slot_out_;
 }
 
 }  // namespace paxos

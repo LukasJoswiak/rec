@@ -72,7 +72,7 @@ void TcpClient::HandleRead(const boost::system::error_code& error,
       Response r;
       message.message().UnpackTo(&r);
 
-      std::cout << "Value: " << r.value() << std::endl;
+      std::cout << "Value (" << r.sequence_number() << "): " << r.value() << std::endl;
 
       if (auto serialized = GetNextMessage()) {
         StartWrite(serialized.value());
