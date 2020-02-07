@@ -6,8 +6,10 @@ namespace paxos {
 PaxosProcess::PaxosProcess(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
-        dispatch_queue)
-    : Process(message_queue, dispatch_queue) {}
+        dispatch_queue,
+    std::string& address)
+    : Process(message_queue, dispatch_queue),
+      address_(address) {}
 
 int PaxosProcess::CompareBallotNumbers(const BallotNumber& b1,
                                        const BallotNumber& b2) {

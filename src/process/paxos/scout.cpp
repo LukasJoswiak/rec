@@ -9,9 +9,8 @@ Scout::Scout(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
-    std::string& leader, BallotNumber& ballot_number)
-    : PaxosProcess(message_queue, dispatch_queue),
-      leader_(leader),
+    std::string& address, BallotNumber& ballot_number)
+    : PaxosProcess(message_queue, dispatch_queue, address),
       ballot_number_(ballot_number) {
   logger_ = spdlog::get("scout");
 }
@@ -77,8 +76,8 @@ void Scout::HandleP1B(P1B&& p, const std::string& from) {
       m.set_type(Message_MessageType_ADOPTED);
       m.mutable_message()->PackFrom(a);
 
-      logger_->debug("sending Adopted to leader {}", leader_);
-      dispatch_queue_.push(std::make_pair(leader_, m));
+      logger_->debug("(internal) sending Adopted to leader {}", address_);
+      dispatch_queue_.push(std::make_pair(address_, m));
       exit_ = true;
     }
   } else {
@@ -89,8 +88,8 @@ void Scout::HandleP1B(P1B&& p, const std::string& from) {
     m.set_type(Message_MessageType_PREEMPTED);
     m.mutable_message()->PackFrom(p);
 
-    logger_->debug("sending Preempted to leader {}", leader_);
-    dispatch_queue_.push(std::make_pair(leader_, m));
+    logger_->debug("(internal) sending Preempted to leader {}", address_);
+    dispatch_queue_.push(std::make_pair(address_, m));
     exit_ = true;
   }
 }

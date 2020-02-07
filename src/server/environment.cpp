@@ -5,8 +5,8 @@
 Environment::Environment(ConnectionManager& manager, std::string& server_name)
     : manager_(manager),
       server_name_(server_name),
-      echo_(echo_queue_, dispatch_queue_, server_name_),
-      replica_(replica_queue_, dispatch_queue_),
+      echo_(echo_queue_, dispatch_queue_, server_name),
+      replica_(replica_queue_, dispatch_queue_, server_name),
       acceptor_(acceptor_queue_, dispatch_queue_, server_name),
       leader_(leader_queue_, dispatch_queue_, server_name) {}
 
@@ -47,7 +47,10 @@ void Environment::Handle(const Message& message) {
     case Message_MessageType_P1B:
     case Message_MessageType_P2B:
     case Message_MessageType_STATUS:
+      HandleLeaderMessage(message);
+      break;
     case Message_MessageType_LEADER_CHANGE:
+      HandleReplicaMessage(message);
       HandleLeaderMessage(message);
       break;
     default:

@@ -17,7 +17,7 @@ class Commander : public PaxosProcess {
       common::SharedQueue<Message>& message_queue,
       common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
           dispatch_queue,
-      std::string& leader, BallotNumber& ballot_number, int slot_number,
+      std::string& address, BallotNumber& ballot_number, int slot_number,
       Command& command);
   ~Commander() override;
 
@@ -30,7 +30,6 @@ class Commander : public PaxosProcess {
 
   std::unordered_set<std::string> received_from_;
 
-  std::string leader_;
   BallotNumber ballot_number_;
   int slot_number_;
   Command command_;

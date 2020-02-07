@@ -18,7 +18,7 @@ class Scout : public PaxosProcess {
       common::SharedQueue<Message>& message_queue,
       common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
           dispatch_queue,
-      std::string& leader, BallotNumber& ballot_number);
+      std::string& address, BallotNumber& ballot_number);
   ~Scout() override;
 
   // Make the base class Run function available.
@@ -36,7 +36,6 @@ class Scout : public PaxosProcess {
  private:
   void HandleP1B(P1B&& p, const std::string& from);
 
-  std::string leader_;
   BallotNumber ballot_number_;
   std::unordered_set<PValue, PValueHash, PValueEqualTo> pvalues_;
   std::unordered_set<std::string> received_from_;

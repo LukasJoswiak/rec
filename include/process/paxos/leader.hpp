@@ -79,7 +79,6 @@ class Leader : public PaxosProcess {
   std::unordered_map<int, std::shared_ptr<common::SharedQueue<Message>>>
       commander_message_queue_;
 
-  std::string address_;
   BallotNumber ballot_number_;
   // TODO: Might be able to get rid of leader_ballot_number_ if servers retry
   // leader election if it fails (as long as it is still the principal)..

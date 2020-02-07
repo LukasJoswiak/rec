@@ -26,8 +26,6 @@ class Acceptor : public PaxosProcess {
   void HandleP1A(P1A&& p, const std::string& from);
   void HandleP2A(P2A&& p, const std::string& from);
 
-  std::string address_;
-
   BallotNumber ballot_number_;
   std::unordered_set<PValue, PValueHash, PValueEqualTo> accepted_;
 };

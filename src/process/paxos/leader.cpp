@@ -14,9 +14,8 @@ Leader::Leader(
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
     std::string& address)
-    : PaxosProcess(message_queue, dispatch_queue),
+    : PaxosProcess(message_queue, dispatch_queue, address),
       scout_id_(0),
-      address_(address),
       active_(false) {
   ballot_number_.set_number(0);
   ballot_number_.set_address(address);
@@ -82,15 +81,17 @@ void Leader::HandleLeaderChange(LeaderChange&& l, const std::string& from) {
 void Leader::HandleProposal(Proposal&& p, const std::string& from) {
   logger_->debug("received proposal from {}", from);
 
+  if (!IsLeader()) {
+    return;
+  }
+
   int slot_number = p.slot_number();
   if (proposals_.find(slot_number) == proposals_.end()) {
     proposals_[slot_number] = p.command();
-    // TODO: Forward to leader?
-    if (IsLeader()) {
-      assert(commander_message_queue_.find(slot_number) ==
-          commander_message_queue_.end());
-      SpawnCommander(slot_number, p.command());
-    }
+
+    assert(commander_message_queue_.find(slot_number) ==
+        commander_message_queue_.end());
+    SpawnCommander(slot_number, p.command());
   }
 }
 

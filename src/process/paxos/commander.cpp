@@ -11,10 +11,9 @@ Commander::Commander(
     common::SharedQueue<Message>& message_queue,
     common::SharedQueue<std::pair<std::optional<std::string>, Message>>&
         dispatch_queue,
-    std::string& leader, BallotNumber& ballot_number, int slot_number,
+    std::string& address, BallotNumber& ballot_number, int slot_number,
     Command& command)
-    : PaxosProcess(message_queue, dispatch_queue),
-      leader_(leader),
+    : PaxosProcess(message_queue, dispatch_queue, address),
       ballot_number_(ballot_number),
       slot_number_(slot_number),
       command_(command) {
@@ -105,7 +104,7 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
     if (received_from_.size() > kServers.size() / 2) {
       Decision d;
       d.set_slot_number(slot_number_);
-      d.set_allocated_command(new Command(command_));
+      // d.set_allocated_command(new Command(command_));
 
       Message m;
       m.set_type(Message_MessageType_DECISION);
@@ -126,8 +125,8 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
     m.set_type(Message_MessageType_PREEMPTED);
     m.mutable_message()->PackFrom(p);
 
-    logger_->debug("sending Preempted to leader {}", leader_);
-    dispatch_queue_.push(std::make_pair(leader_, m));
+    logger_->debug("(internal) sending Preempted to leader {}", address_);
+    dispatch_queue_.push(std::make_pair(address_, m));
     exit_ = true;
   }
 }
