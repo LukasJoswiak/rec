@@ -62,14 +62,12 @@ void Commander::Run() {
 
     std::string data = shares[i];
     auto command = new Command(command_);
-    /*
     // TODO: Uncomment to send erasure coded chunks to acceptors.
     // Not all requests have associated data.
     if (data.size() > 0) {
       command->set_value(data);
-      // TODO: set block index in command.
+      command->set_block_index(i);
     }
-    */
 
     P2A p;
     p.set_allocated_ballot_number(new BallotNumber(ballot_number_));
@@ -101,7 +99,7 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
   if (compared_ballots == 0) {
     received_from_.insert(from);
 
-    if (received_from_.size() > kServers.size() / 2) {
+    if (received_from_.size() >= kQuorum) {
       Decision d;
       d.set_slot_number(slot_number_);
       // d.set_allocated_command(new Command(command_));

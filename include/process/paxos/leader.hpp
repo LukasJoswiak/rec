@@ -40,6 +40,14 @@ class Leader : public PaxosProcess {
   void HandleP1B(Message&& m, const std::string& from);
   void HandleP2B(Message&& m, const std::string& from);
 
+  // Spawns and runs a scout on a thread with the given ballot number. Cleans up
+  // any state associated with the previous scout.
+  void SpawnScout(int ballot_number);
+
+  // Spawns and runs a commander on a thread for the given slot number and
+  // command.
+  void SpawnCommander(int slot_number, Command command);
+
   // Given a list of servers from a protobuf message, returns the principal
   // server. The principal server is the server with the alphabetically maximum
   // address.
@@ -53,16 +61,16 @@ class Leader : public PaxosProcess {
   std::string PrincipalServer(
       const google::protobuf::RepeatedPtrField<std::string>& servers);
 
-  // Spawns and runs a scout on a thread with the given ballot number. Cleans up
-  // any state associated with the previous scout.
-  void SpawnScout(int ballot_number);
-
-  // Spawns and runs a commander on a thread for the given slot number and
-  // command.
-  void SpawnCommander(int slot_number, Command command);
-
   // Returns true if this server is the leader.
   bool IsLeader();
+
+  // Given a list of PValues received from acceptors, determine if any data
+  // values are recoverable. If so, recover the value for the slot and add the
+  // command to the list of commands to be proposed. This function should be
+  // called by the leader after it has been elected and wants to recover data
+  // from erasure coded chunks on other servers.
+  void RecoverValues(
+      const google::protobuf::RepeatedPtrField<PValue>& accepted_pvalues);
 
   // Since scouts are spawned on threads, it is possible to have multiple active
   // scouts at once. Use maps to keep track of a separate SharedQueue per scout.

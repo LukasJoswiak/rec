@@ -35,6 +35,7 @@ void Environment::Handle(const Message& message) {
       HandleEchoMessage(message);
     case Message_MessageType_REQUEST:
     case Message_MessageType_DECISION:
+    case Message_MessageType_RECONSTRUCTED_PROPOSAL:
       HandleReplicaMessage(message);
       break;
     case Message_MessageType_P1A:

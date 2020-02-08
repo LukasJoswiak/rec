@@ -23,6 +23,7 @@ message Message {
     // INTERNAL MESSAGES
     STATUS = 14;
     LEADER_CHANGE = 15;
+    RECONSTRUCTED_PROPOSAL = 16;
   }
   MessageType type = 1;
   google.protobuf.Any message = 2;

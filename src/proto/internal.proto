@@ -11,3 +11,11 @@ message Status {
 message LeaderChange {
   BallotNumber leader_ballot_number = 1;
 }
+
+// When a new server becomes leader, its replica won't know about any commands
+// that are reconstructed. Use this message to notify the replica of
+// reconstructed commands.
+message ReconstructedProposal {
+  int64 slot_number = 1;
+  Command command = 2;
+}

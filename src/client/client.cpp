@@ -24,14 +24,14 @@ int main(int argc, char** argv) {
   c.set_operation(Command_Operation_PUT);
   workload.push_back(c);
 
-  /*
   c.set_client(client_name);
   c.set_sequence_number(2);
   c.set_key("bar");
-  c.set_value("baz");
+  c.set_value("bazbazbazbazbazbaz");
   c.set_operation(Command_Operation_PUT);
   workload.push_back(c);
 
+  /*
   c = Command();
   c.set_client(client_name);
   c.set_sequence_number(3);

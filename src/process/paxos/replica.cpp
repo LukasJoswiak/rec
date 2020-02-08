@@ -31,7 +31,24 @@ void Replica::Handle(Message&& message) {
     LeaderChange l;
     message.message().UnpackTo(&l);
     HandleLeaderChange(std::move(l), message.from());
+  } else if (message.type() == Message_MessageType_RECONSTRUCTED_PROPOSAL) {
+    ReconstructedProposal p;
+    message.message().UnpackTo(&p);
+    HandleReconstructedProposal(std::move(p), message.from());
   }
+}
+
+void Replica::HandleLeaderChange(LeaderChange&& l, const std::string& from) {
+  logger_->debug("received leader change with ballot address {}",
+                 l.leader_ballot_number().address());
+  leader_ = l.leader_ballot_number().address();
+}
+
+void Replica::HandleReconstructedProposal(ReconstructedProposal&& p,
+                                          const std::string& from) {
+  logger_->debug("received reconstructed proposal for slot {}", p.slot_number());
+  proposals_[p.slot_number()] = p.command();
+  slot_in_ = std::max(slot_in_, p.slot_number() + 1);
 }
 
 void Replica::HandleRequest(Request&& r, const std::string& from) {
@@ -55,26 +72,26 @@ void Replica::HandleDecision(Decision&& d, const std::string& from) {
   int slot_number = d.slot_number();
   logger_->debug("received Decision for slot {}", slot_number);
 
+  std::optional<Command> command = std::nullopt;
   if (address_ == leader_) {
-    // Only the leader executes commands because only the leader stores the
-    // entire command. Followers each store smaller erasure coded chunks.
-    // decisions_[slot_number] = d.command();
-    decisions_[slot_number] = proposals_[slot_number];
-    while (decisions_.find(slot_out_) != decisions_.end()) {
-      if (proposals_.find(slot_out_) != proposals_.end()) {
-        proposals_.erase(slot_out_);
-      }
-
-      Execute(decisions_[slot_number]);
-      ++slot_out_;
-    }
+    command = proposals_[slot_number];
   }
-}
 
-void Replica::HandleLeaderChange(LeaderChange&& l, const std::string& from) {
-  logger_->debug("received leader change with ballot address {}",
-                 l.leader_ballot_number().address());
-  leader_ = l.leader_ballot_number().address();
+  // Only the leader executes commands because only the leader stores the
+  // entire command. Followers each store smaller erasure coded chunks.
+  // decisions_[slot_number] = d.command();
+  decisions_[slot_number] = command;
+  while (decisions_.find(slot_out_) != decisions_.end()) {
+    if (proposals_.find(slot_out_) != proposals_.end()) {
+      proposals_.erase(slot_out_);
+    }
+
+    if (address_ == leader_) {
+      logger_->debug("executing command for slot {}", slot_out_);
+      Execute(*decisions_[slot_out_]);
+    }
+    ++slot_out_;
+  }
 }
 
 void Replica::Propose() {
@@ -112,7 +129,6 @@ void Replica::Propose() {
 }
 
 void Replica::Execute(const Command& command) {
-  logger_->info("executing command");
   if (auto response = app_.Execute(command)) {
     Message m;
     m.set_type(Message_MessageType_RESPONSE);

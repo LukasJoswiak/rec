@@ -42,6 +42,8 @@ std::optional<Response> Application::Execute(const Command& command) {
 
     sequence_numbers_[command.client()] = sequence_number + 1;
     results_[command.client()] = r;
+  } else {
+    logger_->trace("command has already been executed");
   }
 
   return results_[command.client()];

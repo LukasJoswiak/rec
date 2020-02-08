@@ -24,8 +24,9 @@ class Code {
       int* block_size);
 
   // Decodes the given data built from original shares and recovery shares.
-  // Block indices must be properly set before calling this function. Returns
-  // true on success, false on failure.
+  // Block indices must be properly set before calling this function. `blocks`
+  // will be overwritten with decoded data in first kOriginalBlocks indices.
+  // Returns true on success, false on failure.
   static bool Decode(cm256_block* blocks, int block_size);
 
  private:

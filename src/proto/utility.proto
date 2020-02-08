@@ -16,8 +16,8 @@ message Command {
     PUT = 2;
   }
   Operation operation = 5;
-  // Erasure code block.
-  // int32 block = 6;
+  // Erasure code block index.
+  int32 block_index = 6;
 }
 
 message PValue {

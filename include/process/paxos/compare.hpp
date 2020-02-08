@@ -9,8 +9,20 @@
 namespace process {
 namespace paxos {
 
-// Custom hash and equals function for the PValue message. Used to enable PValue
-// inclusion in standard library unordered containers.
+// Custom hash and equals function for BallotNumber and PValue messages. Used to
+// enable inclusion in standard library unordered containers.
+
+struct BallotHash {
+  std::size_t operator()(const BallotNumber& ballot) const noexcept {
+    return std::hash<int>()(ballot.number());
+  }
+};
+
+struct BallotEqualTo {
+  bool operator()(const BallotNumber& b1, const BallotNumber& b2) const {
+    return google::protobuf::util::MessageDifferencer::Equals(b1, b2);
+  }
+};
 
 struct PValueHash {
   std::size_t operator()(const PValue& pvalue) const noexcept {

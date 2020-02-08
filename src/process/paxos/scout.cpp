@@ -55,7 +55,7 @@ void Scout::HandleP1B(P1B&& p, const std::string& from) {
       pvalues_.insert(p.accepted(i));
     }
 
-    if (received_from_.size() > kServers.size() / 2) {
+    if (received_from_.size() >= kQuorum) {
       // Received promises from a majority of acceptors to not accept requests
       // with a lower ballot number. Can now promote this server to be leader.
       Adopted a;

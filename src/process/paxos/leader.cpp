@@ -2,8 +2,11 @@
 
 #include <functional>
 #include <thread>
+#include <unordered_map>
 
+#include "process/paxos/compare.hpp"
 #include "spdlog/spdlog.h"
+#include "server/code.hpp"
 #include "server/servers.hpp"
 
 namespace process {
@@ -60,7 +63,7 @@ void Leader::HandleStatus(Status&& s, const std::string& from) {
 
   std::string principal = PrincipalServer(s.live());
   if (!IsLeader() && principal == address_ &&
-      s.live_size() > kServers.size() / 2) {
+      s.live_size() >= kQuorum) {
     // This is the principal server among the alive servers. Increase ballot
     // number to be above current leader and attempt to become leader.
     SpawnScout(leader_ballot_number_.number() + 1);
@@ -100,26 +103,32 @@ void Leader::HandleAdopted(Adopted&& a, const std::string& from) {
 
   if (CompareBallotNumbers(ballot_number_, a.ballot_number()) == 0) {
     logger_->info("{} promoted to leader", address_);
-    // Map of slot number -> ballot, used to determine the command to propose
-    // for each slot.
-    std::unordered_map<int, BallotNumber> max_ballots;
-    for (int i = 0; i < a.accepted_size(); ++i) {
-      PValue pvalue = a.accepted(i);
-      if (max_ballots.find(pvalue.slot_number()) == max_ballots.end() ||
-          CompareBallotNumbers(max_ballots.at(pvalue.slot_number()),
-                               pvalue.ballot_number()) > 0) {
-        max_ballots[pvalue.slot_number()] = pvalue.ballot_number();
-        proposals_[pvalue.slot_number()] = pvalue.command();
-      }
-    }
 
-    // Propose all commands that have been accepted by other servers.
+    // Recover any values and add the command to proposals_ to be reproposed.
+    RecoverValues(a.accepted());
+
+    // Propose all commands that have been accepted by other servers. Must have
+    // received enough responses such that this server was able to reconstruct
+    // the value from the coded chunks.
     for (const auto& it : proposals_) {
       int slot_number = it.first;
       Command command = it.second;
 
+      // Notify the replica of the proposed command for each slot.
+      ReconstructedProposal p;
+      p.set_slot_number(slot_number);
+      p.set_allocated_command(new Command(command));
+
+      Message m;
+      m.set_type(Message_MessageType_RECONSTRUCTED_PROPOSAL);
+      m.mutable_message()->PackFrom(p);
+
+      dispatch_queue_.push(std::make_pair(address_, m));
+
+      // Spawn commander to reach consensus on reconstructed command.
       SpawnCommander(slot_number, command);
     }
+    // TODO: Send no-ops for slots without enough data to reconstruct.
 
     leader_ballot_number_ = a.ballot_number();
     active_ = true;
@@ -165,17 +174,6 @@ void Leader::HandleP2B(Message&& m, const std::string& from) {
 
   auto commander_queue = commander_message_queue_.at(slot_number);
   commander_queue->push(m);
-}
-
-std::string Leader::PrincipalServer(
-    const google::protobuf::RepeatedPtrField<std::string>& servers) {
-  std::string principal;
-  for (const auto& server : servers) {
-    if (server > principal) {
-      principal = server;
-    }
-  }
-  return principal;
 }
 
 void Leader::SpawnScout(int ballot_number) {
@@ -224,8 +222,88 @@ void Leader::SpawnCommander(int slot_number, Command command) {
       .detach();
 }
 
+std::string Leader::PrincipalServer(
+    const google::protobuf::RepeatedPtrField<std::string>& servers) {
+  std::string principal;
+  for (const auto& server : servers) {
+    if (server > principal) {
+      principal = server;
+    }
+  }
+  return principal;
+}
+
 bool Leader::IsLeader() {
   return active_ && address_ == leader_ballot_number_.address();
+}
+
+void Leader::RecoverValues(
+    const google::protobuf::RepeatedPtrField<PValue>& accepted_pvalues) {
+  // Map of slot number -> map of ballot number -> vector of pvalues received
+  // from acceptors for the slot and ballot.
+  std::unordered_map<int,
+      std::unordered_map<BallotNumber, std::vector<PValue>, BallotHash,
+                         BallotEqualTo>> pvalues;
+
+  // TODO: Don't recover value if it has already been learned.
+
+  // Need to determine if this server received enough responses for each slot
+  // to be able to reconstruct the original data value, in which case it can
+  // be reproposed. Otherwise, a no-op will be proposed for the slot.
+  for (const auto& pvalue : accepted_pvalues) {
+    int slot_number = pvalue.slot_number();
+    const BallotNumber& ballot_number = pvalue.ballot_number();
+    if (pvalues.find(slot_number) == pvalues.end()) {
+      pvalues[slot_number] =
+          std::unordered_map<BallotNumber, std::vector<PValue>, BallotHash,
+                             BallotEqualTo>();
+    }
+
+    auto& slot_pvalues = pvalues[slot_number];
+    if (slot_pvalues.find(ballot_number) == slot_pvalues.end()) {
+      slot_pvalues[ballot_number] = std::vector<PValue>();
+    }
+
+    auto& slot_ballot_pvalues = slot_pvalues[ballot_number];
+    slot_ballot_pvalues.push_back(pvalue);
+
+    if (slot_ballot_pvalues.size() == Code::kOriginalBlocks) {
+      // Received enough responses to regenerate data for this slot.
+      logger_->trace("regenerating command for slot {}", slot_number);
+
+      int block_size = slot_ballot_pvalues[0].command().value().size();
+
+      // Recover original value from original and redundant shares received
+      // from acceptors.
+      cm256_block blocks[Code::kOriginalBlocks];
+      int i = 0;
+      for (const auto& pvalue : slot_ballot_pvalues) {
+        // Make sure size of each block is the same.
+        assert(pvalue.command().value().size() == block_size);
+
+        blocks[i].Index = pvalue.command().block_index();
+        blocks[i].Block = (unsigned char*) pvalue.command().value().data();
+        ++i;
+      }
+      bool success = Code::Decode(blocks, block_size);
+      assert(success == true);
+
+      // TODO: Might need to store this on the heap if values become large
+      // Create recovered string of correct size, then fill it with data from
+      // each block. Blocks might be returned out of order.
+      std::string recovered_value(4 * Code::kOriginalBlocks, '0');
+      for (int i = 0; i < Code::kOriginalBlocks; ++i) {
+        int index = blocks[i].Index;
+        recovered_value.replace(index * block_size, block_size, std::string((char*) blocks[i].Block));
+      }
+
+      // TODO: Might need to store this on the heap
+      Command command = Command(slot_ballot_pvalues[0].command());
+      command.set_value(recovered_value);
+      command.clear_block_index();
+      proposals_[slot_number] = command;
+    }
+  }
 }
 
 }  // namespace paxos
