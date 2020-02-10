@@ -71,6 +71,7 @@ void Replica::HandleRequest(Request&& r, const std::string& from) {
 void Replica::HandleDecision(Decision&& d, const std::string& from) {
   int slot_number = d.slot_number();
   logger_->debug("received Decision for slot {}", slot_number);
+  logger_->trace("slot out: {}, slot_in: {}", slot_out_, slot_in_);
 
   std::optional<Command> command = std::nullopt;
   if (address_ == leader_) {

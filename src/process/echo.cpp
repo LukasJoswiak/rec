@@ -8,7 +8,8 @@
 
 namespace {
   const std::chrono::milliseconds kHeartbeatInterval(100);
-  const std::chrono::milliseconds kHeartbeatCheckInterval(400);
+  const std::chrono::milliseconds kHeartbeatCheckInterval(
+      kHeartbeatInterval * 4);
 }
 
 namespace process {

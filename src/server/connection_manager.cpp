@@ -59,9 +59,6 @@ void ConnectionManager::RemoveConnection(std::shared_ptr<TcpConnection> connecti
 
 void ConnectionManager::Deliver(const Message& message,
                                 const std::string& endpoint) {
-  std::string serialized;
-  message.SerializeToString(&serialized);
-
   if (server_name_ == endpoint) {
     // Attempt local delivery.
     environment_.Handle(message);
@@ -71,39 +68,37 @@ void ConnectionManager::Deliver(const Message& message,
   // Attempt delivery to a server.
   for (auto connection : servers_) {
     if (connection->endpoint_name() == endpoint) {
-      connection->StartWrite(serialized);
+      connection->StartWrite(message);
       return;
     }
   }
 
   // Attempt delivery to a client.
   for (auto connection : clients_) {
-    if (connection->endpoint_name() == endpoint) {
-      connection->StartWrite(serialized);
+    if (connection->endpoint_name() == endpoint ||
+        (kClosedLoopTest && connection->endpoint_name() == "localhost" &&
+        endpoint.substr(0, 6) == "client")) {
+      connection->StartWrite(message);
       return;
     }
   }
 }
 
 void ConnectionManager::Broadcast(const Message& message) {
-  std::string serialized;
-  message.SerializeToString(&serialized);
   for (auto connection : servers_) {
-    connection->StartWrite(serialized);
+    connection->StartWrite(message);
   }
 
   // Deliver message locally in addition to sending over the network.
   environment_.Handle(message);
 }
 
-void ConnectionManager::Handle(const std::string& raw_message,
+void ConnectionManager::Handle(const Message& message,
                                std::shared_ptr<TcpConnection> connection) {
   // Special case setup messages to set up the connection and associate TCP
   // connections with specific servers. All other messages will be routed to
   // the message handler.
   // TODO: do I still need this special setup message?
-  Message message;
-  message.ParseFromString(raw_message);
   if (message.type() == Message_MessageType_SETUP) {
     connection->set_endpoint_name(message.from());
     AddServerConnection(connection);

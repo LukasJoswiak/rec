@@ -6,6 +6,8 @@
 
 #include "server/code.hpp"
 
+const bool kClosedLoopTest = true;
+
 // Hardcode the list of servers for now...
 const std::array<std::pair<std::string, uint16_t>, 5> kServers = {
   std::make_pair("server1", 1111),

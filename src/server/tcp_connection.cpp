@@ -2,10 +2,10 @@
 
 #include <iostream>
 
+#include "google/protobuf/util/delimited_message_util.h"
 // Include the ConnectionManager class explicitly to allow symbol lookup to
 // succeed.
 #include "server/connection_manager.hpp"
-
 
 std::shared_ptr<TcpConnection> TcpConnection::Create(
     boost::asio::io_context& io_context, ConnectionManager& manager,
@@ -41,10 +41,14 @@ void TcpConnection::StartRead() {
 void TcpConnection::HandleRead(const boost::system::error_code& error,
                                std::size_t bytes_transferred) {
   if (!error) {
-    std::string message(
-        boost::asio::buffers_begin(input_buffer_.data()),
-        boost::asio::buffers_begin(input_buffer_.data()) + bytes_transferred);
-    input_buffer_.consume(bytes_transferred);
+    std::istream istream(&input_buffer_);
+    ::google::protobuf::io::IstreamInputStream raw_istream(&istream);
+
+    // Parse the message size followed by the message.
+    Message message;
+    bool clean_eof;
+    ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+        &message, &raw_istream, &clean_eof);
 
     manager_.Handle(message, shared_from_this());
 
@@ -54,8 +58,14 @@ void TcpConnection::HandleRead(const boost::system::error_code& error,
   }
 }
 
-void TcpConnection::StartWrite(const std::string& message) {
-  boost::asio::async_write(socket_, boost::asio::buffer(message),
+void TcpConnection::StartWrite(const Message& message) {
+  // Write the message size first followed by the message.
+  boost::asio::streambuf stream_buffer;
+  std::ostream ostream(&stream_buffer);
+
+  ::google::protobuf::util::SerializeDelimitedToOstream(message, &ostream);
+
+  boost::asio::async_write(socket_, stream_buffer.data(),
                            std::bind(&TcpConnection::HandleWrite,
                                      shared_from_this(),
                                      std::placeholders::_1,

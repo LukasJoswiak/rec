@@ -39,8 +39,8 @@ class ConnectionManager {
   // Attempts delivery of the message to all known server endpoints.
   void Broadcast(const Message& message);
 
-  // Passes message to handler.
-  void Handle(const std::string& raw_message,
+  // Passes message to correct handler.
+  void Handle(const Message& message,
               std::shared_ptr<TcpConnection> connection);
 
   // Debug function used to print the connections being managed.

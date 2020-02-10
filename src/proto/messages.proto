@@ -41,6 +41,8 @@ message Request {
 message Response {
   int64 sequence_number = 1;
   string value = 2;
+  // TODO: Remove at some point... for closed loop client testing only.
+  string client = 3;
 }
 
 message Proposal {

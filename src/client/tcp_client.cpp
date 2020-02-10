@@ -1,13 +1,15 @@
 #include "client/tcp_client.hpp"
 
-#include <iostream>
+#include "google/protobuf/util/delimited_message_util.h"
 
 TcpClient::TcpClient(
     boost::asio::io_context& io_context, std::string& name,
-    std::deque<Command>& workload)
+    std::unordered_map<std::string, std::deque<Command>>& workload)
     : socket_(io_context),
       name_(name),
-      workload_(workload) {}
+      workload_(workload) {
+  logger_ = spdlog::get("client");
+}
 
 void TcpClient::Start(boost::asio::ip::tcp::resolver::results_type endpoints) {
   endpoints_ = endpoints;
@@ -34,19 +36,21 @@ void TcpClient::HandleConnect(
     const boost::system::error_code& error,
     boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter) {
   if (!socket_.is_open()) {
-    std::cerr << "Connect timed out" << std::endl;
+    logger_->warn("connect timed out");
     StartConnect(++endpoint_iter);
   } else if (error) {
-    std::cerr << "Connect error: " << error.message() << std::endl;
+    logger_->error("connect failed: {}", error.message());
     socket_.close();
     StartConnect(++endpoint_iter);
   } else {
-    std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
-
-    auto serialized = GetNextMessage().value();
+    logger_->info("connected to {}",
+        endpoint_iter->endpoint().address().to_string());
 
     StartRead();
-    StartWrite(serialized);
+
+    for (const auto& [client, _] : workload_) {
+      SendNextRequest(client);
+    }
   }
 }
 
@@ -61,34 +65,32 @@ void TcpClient::StartRead() {
 void TcpClient::HandleRead(const boost::system::error_code& error,
                            std::size_t bytes_transferred) {
   if (!error) {
-    std::string raw_message(
-        boost::asio::buffers_begin(input_buffer_.data()),
-        boost::asio::buffers_begin(input_buffer_.data()) + bytes_transferred);
-    input_buffer_.consume(bytes_transferred);
+    std::istream reader(&input_buffer_);
+    ::google::protobuf::io::IstreamInputStream raw_istream(&reader);
 
     Message message;
-    message.ParseFromString(raw_message);
+    bool clean_eof;
+    ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&message, &raw_istream, &clean_eof);
+
     if (message.type() == Message_MessageType_RESPONSE) {
       Response r;
       message.message().UnpackTo(&r);
 
-      std::cout << "Value (" << r.sequence_number() << "): " << r.value() << std::endl;
+      logger_->info("Value ({}:{}): {}", r.client(), r.sequence_number(), r.value());
 
-      if (auto serialized = GetNextMessage()) {
-        StartWrite(serialized.value());
-      }
+      SendNextRequest(r.client());
     }
 
     StartRead();
   } else {
-    std::cerr << "Receive error: " << error.message() << std::endl;
+    logger_->error("receive error: {}", error.message());
     Stop();
   }
 }
 
-void TcpClient::StartWrite(const std::string& message) {
+void TcpClient::StartWrite(boost::asio::streambuf& stream_buffer) {
   boost::asio::async_write(
-      socket_, boost::asio::buffer(message, message.size()),
+      socket_, stream_buffer.data(),
       std::bind(&TcpClient::HandleWrite, this, std::placeholders::_1));
 }
 
@@ -98,13 +100,25 @@ void TcpClient::HandleWrite(const boost::system::error_code& error) {
   }
 }
 
-std::optional<std::string> TcpClient::GetNextMessage() {
-  if (workload_.empty()) {
-    return std::nullopt;
+void TcpClient::SendNextRequest(const std::string& client) {
+  boost::asio::streambuf stream_buffer;
+  GetNextMessage(stream_buffer, client);
+  if (stream_buffer.size() > 0) {
+    logger_->trace("writing {} bytes", stream_buffer.size());
+    send_time_[client] = std::chrono::steady_clock::now();
+    StartWrite(stream_buffer);
+  }
+}
+
+void TcpClient::GetNextMessage(boost::asio::streambuf& stream_buffer,
+                               const std::string& client) {
+  auto& workload = workload_.at(client);
+  if (workload.empty()) {
+    return;
   }
 
-  Command command = workload_.front();
-  workload_.pop_front();
+  Command command = workload.front();
+  workload.pop_front();
 
   Request r;
   r.set_allocated_command(new Command(command));
@@ -115,7 +129,6 @@ std::optional<std::string> TcpClient::GetNextMessage() {
   m.mutable_message()->PackFrom(r);
   m.set_from(name_);
 
-  std::string serialized;
-  m.SerializeToString(&serialized);
-  return serialized;
+  std::ostream ostream(&stream_buffer);
+  ::google::protobuf::util::SerializeDelimitedToOstream(m, &ostream);
 }

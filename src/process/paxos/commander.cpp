@@ -62,8 +62,7 @@ void Commander::Run() {
 
     std::string data = shares[i];
     auto command = new Command(command_);
-    // TODO: Uncomment to send erasure coded chunks to acceptors.
-    // Not all requests have associated data.
+    // Not all requests have associated data (only PUTs).
     if (data.size() > 0) {
       command->set_value(data);
       command->set_block_index(i);

@@ -39,6 +39,8 @@ std::optional<Response> Application::Execute(const Command& command) {
     Response r;
     r.set_sequence_number(sequence_number);
     r.set_value(result);
+    // TODO: Remove at some point... for closed loop client testing only.
+    r.set_client(command.client());
 
     sequence_numbers_[command.client()] = sequence_number + 1;
     results_[command.client()] = r;

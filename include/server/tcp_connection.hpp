@@ -6,6 +6,8 @@
 
 #include <boost/asio.hpp>
 
+#include "proto/messages.pb.h"
+
 // Forward declare the ConnectionManager class to break the circular dependency.
 class ConnectionManager;
 
@@ -30,7 +32,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
 
   // Asynchronously writes the message to the socket provided at instance
   // creation.
-  void StartWrite(const std::string& message);
+  void StartWrite(const Message& message);
 
   boost::asio::ip::tcp::socket& socket() {
     return socket_;

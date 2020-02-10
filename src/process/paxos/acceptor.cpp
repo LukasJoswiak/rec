@@ -64,7 +64,7 @@ void Acceptor::HandleP1A(P1A&& p, const std::string& from) {
 }
 
 void Acceptor::HandleP2A(P2A&& p, const std::string& from) {
-  logger_->debug("received P2A from {}", from);
+  logger_->debug("received P2A from {} for slot {}", from, p.slot_number());
 
   if (CompareBallotNumbers(ballot_number_, p.ballot_number()) == 0) {
     PValue pvalue;
@@ -83,7 +83,7 @@ void Acceptor::HandleP2A(P2A&& p, const std::string& from) {
   m.set_type(Message_MessageType_P2B);
   m.mutable_message()->PackFrom(p2b);
 
-  logger_->debug("sending P2B to {}", from);
+  logger_->debug("sending P2B to {} for slot {}", from, p.slot_number());
   dispatch_queue_.push(std::make_pair(from, m));
 }
 

@@ -33,6 +33,7 @@ void Environment::Handle(const Message& message) {
   switch (message.type()) {
     case Message_MessageType_HEARTBEAT:
       HandleEchoMessage(message);
+      break;
     case Message_MessageType_REQUEST:
     case Message_MessageType_DECISION:
     case Message_MessageType_RECONSTRUCTED_PROPOSAL:
@@ -80,7 +81,7 @@ void Environment::Dispatcher() {
     auto pair = dispatch_queue_.front();
     dispatch_queue_.pop();
 
-    Message message = std::get<1>(pair);
+    Message& message = std::get<1>(pair);
     message.set_from(server_name_);
     if (auto destination = std::get<0>(pair)) {
       manager_.Deliver(message, destination.value());
