@@ -8,9 +8,9 @@ all: libs
 libs: $(LIBDIR)/zfec $(LIBDIR)/cm256
 
 $(LIBDIR)/zfec:
-	git clone git@github.com:tahoe-lafs/zfec.git $@
+	git clone https://github.com/tahoe-lafs/zfec.git $@
 
 $(LIBDIR)/cm256:
-	git clone git@github.com:catid/cm256.git $@
+	git clone https://github.com/catid/cm256.git $@
 
 # TODO: add spdlog download
