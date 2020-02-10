@@ -4,7 +4,7 @@ CC = clang
 CXX = clang++
 
 CFLAGS = -Wall -g -std=c11
-CXXFLAGS = -Wall -g -std=c++17
+CXXFLAGS = -Wall -g -march=native -std=c++17
 
 SRCDIR = ../src
 LIBDIR = ../lib

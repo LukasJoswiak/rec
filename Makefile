@@ -2,7 +2,7 @@ CC = clang
 CXX = clang++
 
 CFLAGS = -Wall -g -std=c11
-CXXFLAGS = -Wall -g -MMD -std=c++17 -I include/ -I build/gen -I lib/
+CXXFLAGS = -Wall -g -MMD -march=native -std=c++17 -I include/ -I build/gen -I lib/
 LIBS = -pthread -lprotobuf
 
 SRCDIR = src
@@ -95,10 +95,10 @@ $(BUILDDIR) $(GENDIR) $(BINDIR):
 # Library build rules.
 
 $(BUILDDIR)/cm256.o: $(LIBDIR)/cm256/cm256.cpp
-	$(CC) $(CXXFLAGS) -I $(LIBDIR)/cm256/ -c -o $@ $<
+	$(CC) $(CXXFLAGS) -fPIC -I $(LIBDIR)/cm256/ -c -o $@ $<
 
 $(BUILDDIR)/gf256.o: $(LIBDIR)/cm256/gf256.cpp
-	$(CC) $(CXXFLAGS) -I $(LIBDIR)/cm256/ -c -o $@ $<
+	$(CC) $(CXXFLAGS) -fPIC -I $(LIBDIR)/cm256/ -c -o $@ $<
 
 .PHONY: cpplint
 cpplint: ctags
