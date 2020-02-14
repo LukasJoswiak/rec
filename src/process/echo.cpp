@@ -1,15 +1,14 @@
 #include "process/echo.hpp"
 
-#include <chrono>
 #include <thread>
 
 #include "proto/internal.pb.h"
 #include "proto/messages.pb.h"
 
 namespace {
-  const std::chrono::milliseconds kHeartbeatInterval(100);
-  const std::chrono::milliseconds kHeartbeatCheckInterval(
-      kHeartbeatInterval * 4);
+const std::chrono::milliseconds kHeartbeatInterval(100);
+const std::chrono::milliseconds kHeartbeatCheckInterval(
+    kHeartbeatInterval * 4);
 }
 
 namespace process {
@@ -23,19 +22,10 @@ Echo::Echo(
       address_(address) {
   logger_ = spdlog::get("echo");
 
-  // Use a spawned thread to simulate an asynchronous timer. Would use a
-  // boost::asio timer, but don't have acesss to the io_context in this class.
-  // This timer will not run exactly on each interval due to instructions
-  // taking time to run, but it should be close enough.
-  std::thread([this]() {
-    std::this_thread::sleep_for(kHeartbeatInterval);
-    HeartbeatTimer();
-  }).detach();
-
-  std::thread([this]() {
-    std::this_thread::sleep_for(kHeartbeatCheckInterval);
-    HeartbeatCheckTimer();
-  }).detach();
+  // Run timers and handlers on their own thread.
+  StartTimer(std::bind(&Echo::HeartbeatTimer, this), kHeartbeatInterval);
+  StartTimer(std::bind(&Echo::HeartbeatCheckTimer, this),
+      kHeartbeatCheckInterval);
 }
 
 void Echo::Handle(Message&& message) {
@@ -65,11 +55,6 @@ void Echo::HeartbeatTimer() {
   m.set_from(address_);
 
   dispatch_queue_.push(std::make_pair(std::nullopt, m));
-
-  std::thread([this]() {
-    std::this_thread::sleep_for(kHeartbeatInterval);
-    HeartbeatTimer();
-  }).detach();
 }
 
 void Echo::HeartbeatCheckTimer() {
@@ -84,11 +69,6 @@ void Echo::HeartbeatCheckTimer() {
       ++it;
     }
   }
-
-  std::thread([this]() {
-    std::this_thread::sleep_for(kHeartbeatCheckInterval);
-    HeartbeatCheckTimer();
-  }).detach();
 }
 
 void Echo::SendUpdate() {
@@ -102,6 +82,16 @@ void Echo::SendUpdate() {
   m.mutable_message()->PackFrom(s);
 
   dispatch_queue_.push(std::make_pair(address_, m));
+}
+
+void Echo::StartTimer(std::function<void(void)> function,
+    const std::chrono::milliseconds interval) {
+  std::thread([function, interval]() {
+    while (true) {
+      std::this_thread::sleep_for(interval);
+      function();
+    }
+  }).detach();
 }
 
 }  // namespace process

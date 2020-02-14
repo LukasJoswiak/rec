@@ -1,6 +1,7 @@
 #ifndef INCLUDE_PROCESS_ECHO_HPP_
 #define INCLUDE_PROCESS_ECHO_HPP_
 
+#include <chrono>
 #include <unordered_map>
 
 #include "process/process.hpp"
@@ -31,6 +32,10 @@ class Echo : public Process {
   // Sends an update message containing live servers. Delivered locally to
   // another thread, not sent over the network.
   void SendUpdate();
+
+  // Start a timer to call `function` every `interval`. Runs on a new thread.
+  void StartTimer(std::function<void(void)> function,
+      const std::chrono::milliseconds interval);
 
   std::string address_;
 
