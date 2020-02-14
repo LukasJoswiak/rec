@@ -24,9 +24,11 @@ class TcpClient {
   void Stop();
 
   // Starts an asynchronous write of message on the socket.
-  void StartWrite(boost::asio::streambuf& stream_buffer);
+  void StartWrite();
 
  private:
+  static const int kHeaderSize = 4;
+
   // Attempts to connect to the endpoint.
   void StartConnect(
       boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter);
@@ -36,13 +38,12 @@ class TcpClient {
       const boost::system::error_code& error,
       boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter);
 
-  // Starts an asynchronous read operation to read from the socket until a
-  // newline character is read.
-  void StartRead();
+  // Asynchronously reads kHeaderSize bytes to determine the size of the
+  // message.
+  void StartReadHeader();
 
-  // Handler called after a message is read from the socket.
-  void HandleRead(const boost::system::error_code& error,
-                  std::size_t bytes_transferred);
+  void HandleReadHeader(const boost::system::error_code& error, std::size_t n);
+  void HandleReadBody(const boost::system::error_code& error, std::size_t n);
 
   // Handler called after a message is written to the socket.
   void HandleWrite(const boost::system::error_code& error);
@@ -51,15 +52,20 @@ class TcpClient {
   // the request to the server.
   void SendNextRequest(const std::string& client);
 
-  // Creates a new request message from the item at the beginning of the
-  // workload for the given client, and removes the request from the workload.
-  // Writes the message into the provided streambuf.
-  void GetNextMessage(boost::asio::streambuf& stream_buffer,
-      const std::string& client);
+  // Creates a new serialized request message from the item at the beginning of
+  // the workload for the given client, and removes the request from the
+  // workload. The serialized message consists of a four-byte header followed
+  // by the serialized message. Returns std::nullopt if no message is available
+  // for the client.
+  std::optional<std::string> GetNextMessage(const std::string& client);
 
   boost::asio::ip::tcp::socket socket_;
+  boost::asio::io_context::strand strand_;
   boost::asio::ip::tcp::resolver::results_type endpoints_;
+  char inbound_header_[kHeaderSize];
   boost::asio::streambuf input_buffer_;
+
+  std::deque<std::string> out_queue_;
 
   std::string name_;
   // Map of client address -> time point when the most recent request was sent.

@@ -54,7 +54,7 @@ void TcpServer::HandleConnect(
     connection->socket().close();
     StartConnect(endpoints, ++endpoint_iter, endpoint_name);
   } else {
-    std::cout << "Connected to " << endpoint_iter->endpoint()  << std::endl;
+    std::cout << "Connected to " << endpoint_name << std::endl;
     connection_manager_.AddServerConnection(connection);
 
     Message message;

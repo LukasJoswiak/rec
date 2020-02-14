@@ -16,6 +16,7 @@ int main(int argc, char** argv) {
     spdlog::stdout_color_mt("leader");
     spdlog::stdout_color_mt("scout");
     spdlog::stdout_color_mt("commander");
+    spdlog::stdout_color_mt("connection");
 
     int port = std::stoi(argv[2]);
     // TODO: remove. This is a bit of a hack so I can use the synchronize-panes

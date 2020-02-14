@@ -101,13 +101,12 @@ void Commander::HandleP2B(P2B&& p, const std::string& from) {
     if (received_from_.size() >= kQuorum) {
       Decision d;
       d.set_slot_number(slot_number_);
-      // d.set_allocated_command(new Command(command_));
 
       Message m;
       m.set_type(Message_MessageType_DECISION);
       m.mutable_message()->PackFrom(d);
 
-      logger_->debug("broadcasting Decision");
+      logger_->debug("broadcasting Decision for slot {}", slot_number_);
       dispatch_queue_.push(std::make_pair(std::nullopt, m));
       exit_ = true;
     }

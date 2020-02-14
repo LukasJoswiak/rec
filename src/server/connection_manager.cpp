@@ -35,10 +35,22 @@ void ConnectionManager::AddServerConnection(
     return;
   }
 
-  servers_.insert(connection);
-  connection->Start();
+  // Check if a connection to this server already exists.
+  bool connection_exists = false;
+  for (auto server : servers_) {
+    if (server->endpoint_name() == connection->endpoint_name()) {
+      connection_exists = true;
+      break;
+    }
+  }
 
-  PrintManagedConnections();
+  if (!connection_exists) {
+    servers_.insert(connection);
+    std::cout << "ConnectionManager (" << connection->endpoint_name() << ") Start()" << std::endl;
+    connection->Start();
+
+    PrintManagedConnections();
+  }
 }
 
 void ConnectionManager::RemoveServerConnection(
@@ -68,7 +80,7 @@ void ConnectionManager::Deliver(const Message& message,
   // Attempt delivery to a server.
   for (auto connection : servers_) {
     if (connection->endpoint_name() == endpoint) {
-      connection->StartWrite(message);
+      connection->Write(message);
       return;
     }
   }
@@ -78,7 +90,7 @@ void ConnectionManager::Deliver(const Message& message,
     if (connection->endpoint_name() == endpoint ||
         (kClosedLoopTest && connection->endpoint_name() == "localhost" &&
         endpoint.substr(0, 6) == "client")) {
-      connection->StartWrite(message);
+      connection->Write(message);
       return;
     }
   }
@@ -86,7 +98,7 @@ void ConnectionManager::Deliver(const Message& message,
 
 void ConnectionManager::Broadcast(const Message& message) {
   for (auto connection : servers_) {
-    connection->StartWrite(message);
+    connection->Write(message);
   }
 
   // Deliver message locally in addition to sending over the network.
