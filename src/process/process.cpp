@@ -16,11 +16,14 @@ Process::~Process() {}
 
 void Process::Run() {
   while (1) {
-    auto front = message_queue_.front();
-    message_queue_.pop();
+    Message message;
+    if (!message_queue_.try_pop(&message)) {
+      // Queue has been shutdown.
+      return;
+    }
 
     // Call handler in derived class.
-    Handle(std::move(front));
+    Handle(std::move(message));
 
     if (exit_) {
       return;

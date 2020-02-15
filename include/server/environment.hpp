@@ -19,6 +19,7 @@ class ConnectionManager;
 class Environment {
  public:
   Environment(ConnectionManager& manager, std::string& server_name);
+  ~Environment();
 
   // Call this function to spawn all processes, begin the leader election
   // process and start listening for messages.

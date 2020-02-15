@@ -10,6 +10,14 @@ Environment::Environment(ConnectionManager& manager, std::string& server_name)
       acceptor_(acceptor_queue_, dispatch_queue_, server_name),
       leader_(leader_queue_, dispatch_queue_, server_name) {}
 
+Environment::~Environment() {
+  dispatch_queue_.stop();
+  echo_queue_.stop();
+  replica_queue_.stop();
+  acceptor_queue_.stop();
+  leader_queue_.stop();
+}
+
 void Environment::Start() {
   // Start message handler.
   std::thread(&Environment::Dispatcher, this).detach();
@@ -35,7 +43,6 @@ void Environment::Handle(const Message& message) {
       HandleEchoMessage(message);
       break;
     case Message_MessageType_REQUEST:
-    case Message_MessageType_DECISION:
     case Message_MessageType_RECONSTRUCTED_PROPOSAL:
       HandleReplicaMessage(message);
       break;
@@ -51,6 +58,7 @@ void Environment::Handle(const Message& message) {
     case Message_MessageType_STATUS:
       HandleLeaderMessage(message);
       break;
+    case Message_MessageType_DECISION:
     case Message_MessageType_LEADER_CHANGE:
       HandleReplicaMessage(message);
       HandleLeaderMessage(message);
@@ -78,8 +86,11 @@ void Environment::HandleLeaderMessage(const Message& m) {
 
 void Environment::Dispatcher() {
   while (1) {
-    auto pair = dispatch_queue_.front();
-    dispatch_queue_.pop();
+    std::pair<std::optional<std::string>, Message> pair;
+    if (!dispatch_queue_.try_pop(&pair)) {
+      // Queue has been shutdown.
+      return;
+    }
 
     Message& message = std::get<1>(pair);
     message.set_from(server_name_);

@@ -47,6 +47,10 @@ void Leader::Handle(Message&& message) {
     HandleP1B(std::move(message), message.from());
   } else if (message.type() == Message_MessageType_P2B) {
     HandleP2B(std::move(message), message.from());
+  } else if (message.type() == Message_MessageType_DECISION) {
+    Decision d;
+    message.message().UnpackTo(&d);
+    HandleDecision(std::move(d), message.from());
   } else if (message.type() == Message_MessageType_STATUS) {
     Status s;
     message.message().UnpackTo(&s);
@@ -174,6 +178,12 @@ void Leader::HandleP2B(Message&& m, const std::string& from) {
 
   auto commander_queue = commander_message_queue_.at(slot_number);
   commander_queue->push(m);
+}
+
+void Leader::HandleDecision(Decision&& d, const std::string& from) {
+  // Clean up state for commander where value has been decided.
+  commanders_.erase(d.slot_number());
+  commander_message_queue_.erase(d.slot_number());
 }
 
 void Leader::SpawnScout(int ballot_number) {

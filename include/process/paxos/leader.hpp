@@ -40,6 +40,9 @@ class Leader : public PaxosProcess {
   void HandleP1B(Message&& m, const std::string& from);
   void HandleP2B(Message&& m, const std::string& from);
 
+  // Learn about decisions so commander state can be cleaned up.
+  void HandleDecision(Decision&& d, const std::string& from);
+
   // Spawns and runs a scout on a thread with the given ballot number. Cleans up
   // any state associated with the previous scout.
   void SpawnScout(int ballot_number);

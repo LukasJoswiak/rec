@@ -22,7 +22,6 @@ Commander::Commander(
 
 Commander::~Commander() {
   logger_->trace("exiting for slot {}", slot_number_);
-  exit_ = true;
 }
 
 void Commander::Run() {

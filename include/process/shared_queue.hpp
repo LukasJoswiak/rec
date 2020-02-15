@@ -19,13 +19,11 @@ class SharedQueue {
   SharedQueue(const SharedQueue<T>& other) = delete;
   SharedQueue(SharedQueue<T>&& other) = delete;
 
-  // Returns the first element in the queue. Blocks until an element is
-  // available.
-  T& front();
-
-  // Removes an element from the front of the queue. Blocks if the queue is
-  // empty, until an element can be removed.
-  void pop();
+  // Attempts to pop an element off the front of the queue, returning it in the
+  // output parameter `element`. Blocks until the queue has an element or is
+  // stopped. Returns true if an element was popped successfully, or false if
+  // the queue has been stopped.
+  bool try_pop(T* element);
 
   // Inserts the given element at the end of the queue.
   void push(const T& item);
@@ -37,37 +35,42 @@ class SharedQueue {
   // Returns true if the queue is empty.
   bool empty();
 
+  // Cleans up state and stops condition variables.
+  void stop();
+
  private:
   std::deque<T> queue_;
   std::mutex mutex_;
   std::condition_variable cv_;
+
+  // True if the queue can accept requests.
+  bool accept_;
 };
 
 // Function definitions must be declared in same file so functions with
 // appropriate types can be generated at compile time.
 
 template <typename T>
-SharedQueue<T>::SharedQueue() {}
+SharedQueue<T>::SharedQueue() : accept_(true) {}
 
 template <typename T>
 SharedQueue<T>::~SharedQueue() {}
 
 template <typename T>
-T& SharedQueue<T>::front() {
+bool SharedQueue<T>::try_pop(T* element) {
   std::unique_lock<std::mutex> lock(mutex_);
-  while (queue_.empty()) {
-    cv_.wait(lock);
-  }
-  return queue_.front();
-}
 
-template <typename T>
-void SharedQueue<T>::pop() {
-  std::unique_lock<std::mutex> lock(mutex_);
-  while (queue_.empty()) {
-    cv_.wait(lock);
+  // Wait until the queue has an element or should be shut down.
+  cv_.wait(lock, [this]() {
+    return !queue_.empty() || !accept_;
+  });
+
+  if (!queue_.empty()) {
+    *element = queue_.front();
+    queue_.pop_front();
   }
-  queue_.pop_front();
+
+  return accept_;
 }
 
 template <typename T>
@@ -97,6 +100,12 @@ template <typename T>
 bool SharedQueue<T>::empty() {
   std::unique_lock<std::mutex> lock(mutex_);
   return queue_.empty();
+}
+
+template <typename T>
+void SharedQueue<T>::stop() {
+  accept_ = false;
+  cv_.notify_all();
 }
 
 }  // namespace common
