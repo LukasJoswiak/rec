@@ -7,6 +7,19 @@ ConnectionManager::ConnectionManager(std::string& server_name)
   environment_.Start();      
 }
 
+void ConnectionManager::Shutdown() {
+  for (const auto& client : clients_) {
+    client->Stop();
+  }
+
+  for (const auto& server : servers_) {
+    server->Stop();
+  }
+
+  clients_.clear();
+  servers_.clear();
+}
+
 void ConnectionManager::AddClientConnection(
     std::shared_ptr<TcpConnection> connection) {
   if (clients_.count(connection) != 0) {

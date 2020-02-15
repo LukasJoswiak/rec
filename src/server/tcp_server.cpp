@@ -5,18 +5,25 @@
 
 #include "server/servers.hpp"
 
-TcpServer::TcpServer(
-    boost::asio::io_context& io_context, std::string&& name, uint16_t port)
-    : io_context_(io_context),
-      acceptor_(io_context, boost::asio::ip::tcp::endpoint(
+TcpServer::TcpServer(std::string&& name, uint16_t port)
+    : io_context_(1),
+      signals_(io_context_),
+      acceptor_(io_context_, boost::asio::ip::tcp::endpoint(
           boost::asio::ip::tcp::v4(), port)),
-      resolver_(io_context),
+      resolver_(io_context_),
       name_(name),
       connection_manager_(name) {
+  // Set shutdown conditions.
+  signals_.add(SIGINT);
+  signals_.add(SIGTERM);
+  signals_.async_wait(std::bind(&TcpServer::HandleStop, this,
+                      std::placeholders::_1, std::placeholders::_2));
+
+  // Attempt to open connections to other servers.
   for (int i = 0; i < kServers.size(); ++i) {
     auto server_name = std::get<0>(kServers.at(i));
     auto server_port = std::get<1>(kServers.at(i));
-    if (server_port != port) {
+    if (server_name != name_) {
       auto endpoints = resolver_.resolve(
           "localhost",
           std::to_string(server_port));
@@ -24,7 +31,12 @@ TcpServer::TcpServer(
     }
   }
 
+  // Handle incoming connections.
   StartAccept();
+}
+
+void TcpServer::Run() {
+  io_context_.run();
 }
 
 void TcpServer::StartConnect(
@@ -76,9 +88,23 @@ void TcpServer::StartAccept() {
 
 void TcpServer::HandleAccept(std::shared_ptr<TcpConnection> new_connection,
                              const boost::system::error_code& error) {
+  if (!acceptor_.is_open()) {
+    return;
+  }
+
   if (!error) {
     new_connection->Start();
   }
 
   StartAccept();
+}
+
+void TcpServer::HandleStop(boost::system::error_code error, int signal_number) {
+  if (error) {
+    std::cerr << "Error shutting down with signal " << signal_number << ": "
+              << error.message() << std::endl;
+  }
+  acceptor_.close();
+  connection_manager_.Shutdown();
+  std::cout << "Server stopped" << std::endl;
 }

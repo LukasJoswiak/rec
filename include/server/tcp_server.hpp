@@ -13,11 +13,16 @@
 class TcpServer {
  public:
   // Initialize a new TcpServer which listens for incoming connections on the
-  // given port.
-  TcpServer(boost::asio::io_context& io_context, std::string&& name,
-            uint16_t port);
+  // given port. Must call Run to start the server.
+  TcpServer(std::string&& name, uint16_t port);
   TcpServer(const TcpServer& other) = delete;
   TcpServer& operator=(const TcpServer& other) = delete;
+
+  // Attempt to connect to other servers and start listening for connections.
+  void Run();
+
+  // Stop the server and shut down all connections.
+  void Stop();
 
  private:
   // Initiate a connection asynchronously.
@@ -42,7 +47,11 @@ class TcpServer {
   void HandleAccept(std::shared_ptr<TcpConnection> new_connection,
                     const boost::system::error_code& error);
 
-  boost::asio::io_context& io_context_;
+  // Handles system shutdown.
+  void HandleStop(boost::system::error_code error, int signal_number);
+
+  boost::asio::io_context io_context_;
+  boost::asio::signal_set signals_;
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ip::tcp::resolver resolver_;
 

@@ -15,6 +15,9 @@ class ConnectionManager {
  public:
   explicit ConnectionManager(std::string& server_name);
 
+  // Shuts down all tracked TCP connections.
+  void Shutdown();
+
   // Starts tracking a client connection.
   void AddClientConnection(std::shared_ptr<TcpConnection> connection);
 

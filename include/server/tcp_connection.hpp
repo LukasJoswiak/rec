@@ -34,6 +34,9 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   // initial setup to be performed.
   void Start();
 
+  // Close connection to endpoint.
+  void Stop();
+
   // Queues the message to be sent.
   void Write(const Message& message);
 

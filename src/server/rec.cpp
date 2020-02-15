@@ -19,15 +19,10 @@ int main(int argc, char** argv) {
     spdlog::stdout_color_mt("connection");
 
     int port = std::stoi(argv[2]);
-    // TODO: remove. This is a bit of a hack so I can use the synchronize-panes
-    // tmux option and avoid having to fix some sort of issue when starting
-    // all three replicas at the same time.
-    // std::this_thread::sleep_for(std::chrono::milliseconds((port - 1111) * 50));
 
-    boost::asio::io_context io_context;
-    TcpServer server(io_context, argv[1], port);
-
-    io_context.run();
+    // Create and run server.
+    TcpServer server(argv[1], port);
+    server.Run();
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }

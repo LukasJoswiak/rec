@@ -3,7 +3,6 @@
 #include <iomanip>
 #include <iostream>
 
-#include "google/protobuf/util/delimited_message_util.h"
 // Include the ConnectionManager class explicitly to allow symbol lookup to
 // succeed.
 #include "server/connection_manager.hpp"
@@ -23,17 +22,25 @@ TcpConnection::TcpConnection(
       manager_(manager),
       endpoint_name_(endpoint_name) {
   logger_ = spdlog::get("connection");
+  logger_->trace("creating connection to {}", endpoint_name);
 }
 
 TcpConnection::~TcpConnection() {
-  manager_.PrintManagedConnections();
-  boost::system::error_code error;
-  socket_.close(error);
+  logger_->trace("destructor called for connection to {}", endpoint_name_);
 }
 
 void TcpConnection::Start() {
   boost::asio::post(strand_,
       std::bind(&TcpConnection::StartReadHeader, shared_from_this()));;
+}
+
+void TcpConnection::Stop() {
+  logger_->trace("closing connection to {}", endpoint_name_);
+  boost::system::error_code error;
+  socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error);
+  if (error) {
+    logger_->error("socket close error: {}", error.message());
+  }
 }
 
 void TcpConnection::StartReadHeader() {
@@ -62,8 +69,9 @@ void TcpConnection::HandleReadHeader(const boost::system::error_code& error,
         std::bind(&TcpConnection::HandleReadBody, shared_from_this(),
                   std::placeholders::_1, std::placeholders::_2));
   } else {
-    manager_.RemoveConnection(shared_from_this());
     logger_->error("handle read header error: {}", error.message());
+    manager_.RemoveConnection(shared_from_this());
+    socket_.close();
   }
 }
 
@@ -96,6 +104,8 @@ void TcpConnection::HandleReadBody(const boost::system::error_code& error,
     }
   } else {
     logger_->error("handle read body error: {}", error.message());
+    manager_.RemoveConnection(shared_from_this());
+    socket_.close();
   }
 }
 
