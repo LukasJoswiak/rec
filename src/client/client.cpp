@@ -80,6 +80,7 @@ int main(int argc, char** argv) {
       c.set_operation(Command_Operation_PUT);
       workload["client1"].push_back(c);
     }
+
     {
       Command c;
       c.set_client("client2");

@@ -65,7 +65,8 @@ class TcpClient {
   char inbound_header_[kHeaderSize];
   boost::asio::streambuf input_buffer_;
 
-  std::deque<std::string> out_queue_;
+  // Contains pairs of <serialized message, client id>.
+  std::deque<std::pair<std::string, std::string>> out_queue_;
 
   std::string name_;
   // Map of client address -> time point when the most recent request was sent.
@@ -73,6 +74,8 @@ class TcpClient {
       std::chrono::time_point<std::chrono::steady_clock>> send_time_;
   // Map of client address -> deque of commands the client wants to run.
   std::unordered_map<std::string, std::deque<Command>> workload_;
+  // Time the client was started.
+  std::chrono::time_point<std::chrono::steady_clock> start_time_;
 
   std::shared_ptr<spdlog::logger> logger_;
 };

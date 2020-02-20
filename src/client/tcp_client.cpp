@@ -18,6 +18,11 @@ void TcpClient::Start(boost::asio::ip::tcp::resolver::results_type endpoints) {
 }
 
 void TcpClient::Stop() {
+  auto elapsed_time =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now() - start_time_);
+  logger_->info("elapsed time: {} milliseconds", elapsed_time.count());
+
   boost::system::error_code error;
   socket_.close(error);
 }
@@ -50,6 +55,7 @@ void TcpClient::HandleConnect(
     boost::asio::post(strand_,
         std::bind(&TcpClient::StartReadHeader, this));;
 
+    start_time_ = std::chrono::steady_clock::now();
     for (const auto& [client, _] : workload_) {
       SendNextRequest(client);
     }
@@ -91,6 +97,7 @@ void TcpClient::HandleReadBody(const boost::system::error_code& error,
   if (!error) {
     assert(input_buffer_.size() == bytes_transferred);
 
+    auto now = std::chrono::steady_clock::now();
     const char* buf =
         boost::asio::buffer_cast<const char*>(input_buffer_.data());
     const std::string data(buf, bytes_transferred);
@@ -108,7 +115,6 @@ void TcpClient::HandleReadBody(const boost::system::error_code& error,
       Response r;
       message.message().UnpackTo(&r);
 
-      auto now = std::chrono::steady_clock::now();
       auto response_time =
           std::chrono::duration_cast<std::chrono::microseconds>(
               now - send_time_[r.client()]);
@@ -128,7 +134,10 @@ void TcpClient::HandleReadBody(const boost::system::error_code& error,
 
 void TcpClient::StartWrite() {
   assert(out_queue_.size() >= 1);
-  const std::string& message = out_queue_.front();
+  const auto& pair = out_queue_.front();
+  const std::string& message = std::get<0>(pair);
+  const std::string& client = std::get<1>(pair);
+  send_time_[client] = std::chrono::steady_clock::now();
   boost::asio::async_write(
       socket_, boost::asio::buffer(message),
       std::bind(&TcpClient::HandleWrite, this, std::placeholders::_1));
@@ -152,15 +161,15 @@ void TcpClient::HandleWrite(const boost::system::error_code& error) {
 
 void TcpClient::SendNextRequest(const std::string& client) {
   if (auto serialized = GetNextMessage(client)) {
-    // TODO: Don't set start time until message is written.
-    send_time_[client] = std::chrono::steady_clock::now();
-    out_queue_.push_back(*serialized);
+    out_queue_.push_back(std::make_pair(*serialized, client));
 
     if (out_queue_.size() > 1) {
       return;
     }
 
     StartWrite();
+  } else {
+    Stop();
   }
 }
 

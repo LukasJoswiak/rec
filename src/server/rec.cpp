@@ -7,6 +7,8 @@
 #include "server/tcp_server.hpp"
 
 int main(int argc, char** argv) {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
   try {
     spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [%t] [%n] %v");
     spdlog::set_level(spdlog::level::trace);
@@ -26,6 +28,8 @@ int main(int argc, char** argv) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
+
+  google::protobuf::ShutdownProtobufLibrary();
 
   return 0;
 }
