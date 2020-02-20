@@ -86,7 +86,7 @@ class Leader : public PaxosProcess {
   // Track each spawned commander, along with a SharedQueue for message passing
   // to that commander. Commanders are always spawned for a specific slot
   // number, and multiple commanders may be running at once.
-  std::unordered_map<int, paxos::Commander> commanders_;
+  std::unordered_map<int, std::shared_ptr<paxos::Commander>> commanders_;
   std::unordered_map<int, std::shared_ptr<common::SharedQueue<Message>>>
       commander_message_queue_;
 

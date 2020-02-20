@@ -181,7 +181,6 @@ void Leader::HandleP2B(Message&& m, const std::string& from) {
 }
 
 void Leader::HandleDecision(Decision&& d, const std::string& from) {
-  // Clean up state for commander where value has been decided.
   commanders_.erase(d.slot_number());
   commander_message_queue_.erase(d.slot_number());
 }
@@ -224,11 +223,12 @@ void Leader::SpawnCommander(int slot_number, Command command) {
 
   // Create a commander and run it on its own thread.
   auto pair = commanders_.emplace(slot_number,
-      Commander(*commander_message_queue_[slot_number], dispatch_queue_,
-                address_, ballot_number_, slot_number, command));
+      std::make_shared<paxos::Commander>(
+          *commander_message_queue_[slot_number], dispatch_queue_, address_,
+          ballot_number_, slot_number, command));
   // Make sure the new commander was successfully inserted.
   assert(std::get<1>(pair) == true);
-  std::thread(&paxos::Commander::Run, &commanders_.at(slot_number))
+  std::thread(&paxos::Commander::Run, std::move(commanders_.at(slot_number)))
       .detach();
 }
 
