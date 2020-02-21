@@ -10,6 +10,11 @@ TcpClient::TcpClient(
       name_(name),
       workload_(workload) {
   logger_ = spdlog::get("client");
+
+  num_requests_ = 0;
+  for (const auto& [_, workload] : workload_) {
+    num_requests_ += workload.size();
+  }
 }
 
 void TcpClient::Start(boost::asio::ip::tcp::resolver::results_type endpoints) {
@@ -18,10 +23,21 @@ void TcpClient::Start(boost::asio::ip::tcp::resolver::results_type endpoints) {
 }
 
 void TcpClient::Stop() {
-  auto elapsed_time =
-      std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::steady_clock::now() - start_time_);
-  logger_->info("elapsed time: {} milliseconds", elapsed_time.count());
+  auto elapsed_time = std::chrono::steady_clock::now() - start_time_;
+  auto elapsed_time_seconds =
+      std::chrono::duration_cast<std::chrono::seconds>(elapsed_time);
+  auto elapsed_time_millis =
+      std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time);
+  auto elapsed_time_micros =
+      std::chrono::duration_cast<std::chrono::microseconds>(elapsed_time);
+  logger_->info("elapsed time: {} milliseconds", elapsed_time_millis.count());
+
+  int average_latency = elapsed_time_micros.count() / num_requests_;
+  logger_->info("sent {} requests with an average latency of {} microseconds",
+      num_requests_, average_latency);
+
+  int throughput = static_cast<double>(num_requests_) / elapsed_time_seconds.count();
+  logger_->info("throughput: {} req/s", throughput);
 
   boost::system::error_code error;
   socket_.close(error);
@@ -119,7 +135,7 @@ void TcpClient::HandleReadBody(const boost::system::error_code& error,
           std::chrono::duration_cast<std::chrono::microseconds>(
               now - send_time_[r.client()]);
 
-      logger_->info("Value ({}:{}, {} microseconds): {}", r.client(),
+      logger_->debug("Value ({}:{}, {} microseconds): {}", r.client(),
           r.sequence_number(), response_time.count(), r.value());
 
       SendNextRequest(r.client());

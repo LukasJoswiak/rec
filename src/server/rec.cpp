@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   try {
-    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [%t] [%n] %v");
+    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e.%f] [%^%l%$] [%t] [%n] %v");
     spdlog::set_level(spdlog::level::trace);
     spdlog::stdout_color_mt("echo");
     spdlog::stdout_color_mt("replica");

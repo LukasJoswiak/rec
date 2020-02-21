@@ -70,45 +70,16 @@ int main(int argc, char** argv) {
   }
   */
 
-  for (int i = 1; i <= 10000; ++i) {
-    {
+  for (int i = 1; i <= 16; ++i) {
+    for (int j = 1; j <= 500; ++j) {
+      std::string client = "client" + std::to_string(i);
       Command c;
-      c.set_client("client1");
-      c.set_sequence_number(i);
-      c.set_key("foo" + std::to_string(i));
+      c.set_client(client);
+      c.set_sequence_number(j);
+      c.set_key("foo" + std::to_string(j));
       c.set_value("barbarbarbar");
       c.set_operation(Command_Operation_PUT);
-      workload["client1"].push_back(c);
-    }
-
-    {
-      Command c;
-      c.set_client("client2");
-      c.set_sequence_number(i);
-      c.set_key("bar" + std::to_string(i));
-      c.set_value("bazbazbazbazbazbaz");
-      c.set_operation(Command_Operation_PUT);
-      workload["client2"].push_back(c);
-    }
-
-    {
-      Command c;
-      c.set_client("client3");
-      c.set_sequence_number(i);
-      c.set_key("baz" + std::to_string(i));
-      c.set_value("abcabcabcabc");
-      c.set_operation(Command_Operation_PUT);
-      workload["client3"].push_back(c);
-    }
-
-    {
-      Command c;
-      c.set_client("client4");
-      c.set_sequence_number(i);
-      c.set_key("raz" + std::to_string(i));
-      c.set_value("zzzzzzzzzzzz");
-      c.set_operation(Command_Operation_PUT);
-      workload["client4"].push_back(c);
+      workload[client].push_back(c);
     }
   }
 
