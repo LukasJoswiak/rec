@@ -46,6 +46,8 @@ void TcpClient::Stop() {
 void TcpClient::StartConnect(
     boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter) {
   if (endpoint_iter != endpoints_.end()) {
+    socket_.open(boost::asio::ip::tcp::v4());
+    socket_.set_option(boost::asio::ip::tcp::no_delay(true));
     socket_.async_connect(endpoint_iter->endpoint(),
                           std::bind(&TcpClient::HandleConnect, this,
                                     std::placeholders::_1, endpoint_iter));

@@ -67,6 +67,7 @@ void TcpServer::HandleConnect(
     StartConnect(endpoints, ++endpoint_iter, endpoint_name);
   } else {
     std::cout << "Connected to " << endpoint_name << std::endl;
+    connection->socket().set_option(boost::asio::ip::tcp::no_delay(true));
     connection_manager_.AddServerConnection(connection);
 
     Message message;
@@ -93,6 +94,7 @@ void TcpServer::HandleAccept(std::shared_ptr<TcpConnection> new_connection,
   }
 
   if (!error) {
+    new_connection->socket().set_option(boost::asio::ip::tcp::no_delay(true));
     new_connection->Start();
   }
 
