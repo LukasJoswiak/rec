@@ -8,13 +8,10 @@ TcpClient::TcpClient(
     : socket_(io_context),
       strand_(io_context),
       name_(name),
-      workload_(workload) {
+      workload_(workload),
+      num_requests_(0),
+      average_latency_(0) {
   logger_ = spdlog::get("client");
-
-  num_requests_ = 0;
-  for (const auto& [_, workload] : workload_) {
-    num_requests_ += workload.size();
-  }
 }
 
 void TcpClient::Start(boost::asio::ip::tcp::resolver::results_type endpoints) {
@@ -24,19 +21,14 @@ void TcpClient::Start(boost::asio::ip::tcp::resolver::results_type endpoints) {
 
 void TcpClient::Stop() {
   auto elapsed_time = std::chrono::steady_clock::now() - start_time_;
-  auto elapsed_time_seconds =
-      std::chrono::duration_cast<std::chrono::seconds>(elapsed_time);
   auto elapsed_time_millis =
       std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time);
-  auto elapsed_time_micros =
-      std::chrono::duration_cast<std::chrono::microseconds>(elapsed_time);
   logger_->info("elapsed time: {} milliseconds", elapsed_time_millis.count());
 
-  int average_latency = elapsed_time_micros.count() / num_requests_;
   logger_->info("sent {} requests with an average latency of {} microseconds",
-      num_requests_, average_latency);
+      num_requests_, average_latency_);
 
-  int throughput = static_cast<double>(num_requests_) / elapsed_time_seconds.count();
+  int throughput = static_cast<double>(num_requests_) / elapsed_time_millis.count() * 1000;
   logger_->info("throughput: {} req/s", throughput);
 
   boost::system::error_code error;
@@ -140,6 +132,11 @@ void TcpClient::HandleReadBody(const boost::system::error_code& error,
       logger_->debug("Value ({}:{}, {} microseconds): {}", r.client(),
           r.sequence_number(), response_time.count(), r.value());
 
+      ++num_requests_;
+      // Update average latency.
+      average_latency_ -= average_latency_ / num_requests_;
+      average_latency_ += (double) response_time.count() / num_requests_;
+
       SendNextRequest(r.client());
     }
 
@@ -156,6 +153,7 @@ void TcpClient::StartWrite() {
   const std::string& message = std::get<0>(pair);
   const std::string& client = std::get<1>(pair);
   send_time_[client] = std::chrono::steady_clock::now();
+  logger_->debug("Sending request from {}", client);
   boost::asio::async_write(
       socket_, boost::asio::buffer(message),
       std::bind(&TcpClient::HandleWrite, this, std::placeholders::_1));
@@ -186,8 +184,6 @@ void TcpClient::SendNextRequest(const std::string& client) {
     }
 
     StartWrite();
-  } else {
-    Stop();
   }
 }
 

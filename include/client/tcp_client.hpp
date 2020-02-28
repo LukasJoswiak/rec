@@ -74,7 +74,11 @@ class TcpClient {
       std::chrono::time_point<std::chrono::steady_clock>> send_time_;
   // Map of client address -> deque of commands the client wants to run.
   std::unordered_map<std::string, std::deque<Command>> workload_;
+
+  // Statistics.
   int num_requests_;
+  // Average latency (microseconds);
+  double average_latency_;
   // Time the client was started.
   std::chrono::time_point<std::chrono::steady_clock> start_time_;
 

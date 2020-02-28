@@ -22,6 +22,7 @@ std::string GenerateValue() {
 int main(int argc, char** argv) {
   spdlog::set_level(spdlog::level::trace);
   spdlog::stdout_color_mt("client");
+  spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e.%f] [%n] [%^%l%$] %v");
 
   std::string client_name = argv[1];
   std::string server_port = argv[2];
@@ -70,8 +71,10 @@ int main(int argc, char** argv) {
   }
   */
 
-  for (int i = 1; i <= 16; ++i) {
-    for (int j = 1; j <= 500; ++j) {
+  int num_clients = 4;
+  int requests_per_client = 2;
+  for (int i = 1; i <= num_clients; ++i) {
+    for (int j = 1; j <= requests_per_client; ++j) {
       std::string client = "client" + std::to_string(i);
       Command c;
       c.set_client(client);
