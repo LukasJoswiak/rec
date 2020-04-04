@@ -2,6 +2,7 @@
 #include <functional>
 #include <thread>
 
+#include "proto/messages.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "server/tcp_server.hpp"
@@ -18,11 +19,14 @@ int main(int argc, char** argv) {
     spdlog::stdout_color_mt("leader");
     spdlog::stdout_color_mt("scout");
     spdlog::stdout_color_mt("commander");
+    spdlog::stdout_color_mt("socket");
+    spdlog::stdout_color_mt("server");
     spdlog::stdout_color_mt("connection");
 
     int port = std::stoi(argv[2]);
 
     // Create and run server.
+    // TcpServer server(argv[1], port);
     TcpServer server(argv[1], port);
     server.Run();
   } catch (std::exception& e) {

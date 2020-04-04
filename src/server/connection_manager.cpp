@@ -51,7 +51,7 @@ void ConnectionManager::AddServerConnection(
   // Check if a connection to this server already exists.
   bool connection_exists = false;
   for (auto server : servers_) {
-    if (server->endpoint_name() == connection->endpoint_name()) {
+    if (server->endpoint() == connection->endpoint()) {
       connection_exists = true;
       break;
     }
@@ -59,9 +59,6 @@ void ConnectionManager::AddServerConnection(
 
   if (!connection_exists) {
     servers_.insert(connection);
-    std::cout << "ConnectionManager (" << connection->endpoint_name() << ") Start()" << std::endl;
-    connection->Start();
-
     PrintManagedConnections();
   }
 }
@@ -92,7 +89,7 @@ void ConnectionManager::Deliver(const Message& message,
 
   // Attempt delivery to a server.
   for (auto connection : servers_) {
-    if (connection->endpoint_name() == endpoint) {
+    if (connection->endpoint() == endpoint) {
       connection->Write(message);
       return;
     }
@@ -100,8 +97,8 @@ void ConnectionManager::Deliver(const Message& message,
 
   // Attempt delivery to a client.
   for (auto connection : clients_) {
-    if (connection->endpoint_name() == endpoint ||
-        (kClosedLoopTest && connection->endpoint_name() == "localhost" &&
+    if (connection->endpoint() == endpoint ||
+        (kClosedLoopTest && connection->endpoint() == "localhost" &&
         endpoint.substr(0, 6) == "client")) {
       connection->Write(message);
       return;
@@ -125,7 +122,7 @@ void ConnectionManager::Handle(const Message& message,
   // the message handler.
   // TODO: do I still need this special setup message?
   if (message.type() == Message_MessageType_SETUP) {
-    connection->set_endpoint_name(message.from());
+    connection->set_endpoint(message.from());
     AddServerConnection(connection);
   } else if (message.type() == Message_MessageType_UNKNOWN) {
     std::cout << "Unknown message type from " << message.from()
@@ -133,8 +130,9 @@ void ConnectionManager::Handle(const Message& message,
   } else {
     // If a request was received from a client, identify the connection as
     // a client connection and begin tracking it.
+    // TODO: Only do this once.
     if (message.type() == Message_MessageType_REQUEST) {
-      connection->set_endpoint_name(message.from());
+      connection->set_endpoint(message.from());
       AddClientConnection(connection);
     }
 
@@ -146,6 +144,6 @@ void ConnectionManager::PrintManagedConnections() {
   std::cout << "ConnectionManager (" << servers_.size()
             << " server connections)" << std::endl;
   for (auto connection : servers_) {
-    std::cout << "  localhost -> " << connection->endpoint_name() << std::endl;
+    std::cout << "  localhost -> " << connection->endpoint() << std::endl;
   }
 }

@@ -52,6 +52,20 @@ void Replica::HandleReconstructedProposal(ReconstructedProposal&& p,
 }
 
 void Replica::HandleRequest(Request&& r, const std::string& from) {
+  /*
+  // Immediately respond to a request instead of replicating it. Used for
+  // testing.
+  Response rr;
+  rr.set_sequence_number(r.command().sequence_number());
+  rr.set_value("hello");
+  rr.set_client(r.command().client());
+
+  Message m;
+  m.set_type(Message_MessageType_RESPONSE);
+  m.mutable_message()->PackFrom(rr);
+  dispatch_queue_.push(std::make_pair(r.command().client(), m));
+  */
+
   if (address_ == leader_) {
     // Propose command if this server thinks it is the leader.
     requests_.push(r.command());

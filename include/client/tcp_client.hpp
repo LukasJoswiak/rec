@@ -1,86 +1,84 @@
 #ifndef INCLUDE_CLIENT_TCP_CLIENT_HPP_
 #define INCLUDE_CLIENT_TCP_CLIENT_HPP_
 
+#include <unistd.h>
+#include <errno.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+
 #include <chrono>
 #include <deque>
-#include <string>
-#include <unordered_map>
-
-#include <boost/asio.hpp>
+#include <mutex>
 
 #include "proto/messages.pb.h"
 #include "spdlog/spdlog.h"
+#include "process/shared_queue.hpp"
 
 class TcpClient {
  public:
-  explicit TcpClient(boost::asio::io_context& io_context, std::string& name,
+  explicit TcpClient(
       std::unordered_map<std::string, std::deque<Command>>& workload);
 
-  // Starts the client and attempts to open a connection using the given
-  // endpoints.
-  void Start(boost::asio::ip::tcp::resolver::results_type endpoints);
-
-  // Closes the connection.
-  void Stop();
-
-  // Starts an asynchronous write of message on the socket.
-  void StartWrite();
+  // Attempts to open a connection to the host on the given port. Queues initial
+  // client messages and spawn reader and writer threads.
+  void Start(std::string&& host, unsigned short port);
 
  private:
   static const int kHeaderSize = 4;
 
-  // Attempts to connect to the endpoint.
-  void StartConnect(
-      boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter);
+  // Closes the connection to the remote host.
+  void Close(int socket_fd);
 
-  // Handles a connection attempt to the endpoint.
-  void HandleConnect(
-      const boost::system::error_code& error,
-      boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter);
+  // Converts the given endpoint into a sockaddr_storage struct. `ret_addr` and
+  // `ret_addrlen` are return parameters which will be populated on success. 
+  // Returns true on success.
+  bool LookupName(std::string& host, unsigned short port,
+      struct sockaddr_storage* ret_addr, std::size_t* ret_addrlen);
 
-  // Asynchronously reads kHeaderSize bytes to determine the size of the
-  // message.
-  void StartReadHeader();
+  // Creates a socket to the given address and connects to it. Sets newly
+  // created file descriptor on `ret_fd` return parameter. Returns true on
+  // success.
+  bool Connect(const struct sockaddr_storage& addr, const std::size_t& addrlen,
+      int* ret_fd);
 
-  void HandleReadHeader(const boost::system::error_code& error, std::size_t n);
-  void HandleReadBody(const boost::system::error_code& error, std::size_t n);
+  // Continuously reads messages from the given file descriptor. The first
+  // kHeaderSize bytes of each message must be the size of the message, followed
+  // by a Response message (see protobuf definition). After reading response,
+  // queues next message to be sent. This function is blocking and should be run
+  // on its own thread.
+  void Read(int fd);
 
-  // Handler called after a message is written to the socket.
-  void HandleWrite(const boost::system::error_code& error);
+  // Reads the given number of bytes into buf from the socket with the given
+  // file descriptor. Returns true on success.
+  bool Read(int fd, char* buf, std::size_t bytes);
 
-  // Pulls the next request from the workload for the given client, and sends
-  // the request to the server.
-  void SendNextRequest(const std::string& client);
+  // Continuously writes messages from `out_queue_` to the socket with the given
+  // file descriptor. This function is blocking and should be run on its own
+  // thread.
+  void Write(int fd);
 
-  // Creates a new serialized request message from the item at the beginning of
-  // the workload for the given client, and removes the request from the
-  // workload. The serialized message consists of a four-byte header followed
-  // by the serialized message. Returns std::nullopt if no message is available
-  // for the client.
+  // Writes the given message to the socket with the given file descriptor.
+  // Returns true on success.
+  bool Write(int fd, const std::string& message);
+
+  // Returns the next message for the given client in a serialized format.
   std::optional<std::string> GetNextMessage(const std::string& client);
 
-  boost::asio::ip::tcp::socket socket_;
-  boost::asio::io_context::strand strand_;
-  boost::asio::ip::tcp::resolver::results_type endpoints_;
-  char inbound_header_[kHeaderSize];
-  boost::asio::streambuf input_buffer_;
-
   // Contains pairs of <serialized message, client id>.
-  std::deque<std::pair<std::string, std::string>> out_queue_;
+  process::common::SharedQueue<std::pair<std::string, std::string>> out_queue_;
 
-  std::string name_;
   // Map of client address -> time point when the most recent request was sent.
   std::unordered_map<std::string,
       std::chrono::time_point<std::chrono::steady_clock>> send_time_;
   // Map of client address -> deque of commands the client wants to run.
   std::unordered_map<std::string, std::deque<Command>> workload_;
 
-  // Statistics.
-  int num_requests_;
-  // Average latency (microseconds);
-  double average_latency_;
-  // Time the client was started.
-  std::chrono::time_point<std::chrono::steady_clock> start_time_;
+  // TODO: Remove!
+  std::mutex mutex_;
 
   std::shared_ptr<spdlog::logger> logger_;
 };

@@ -3,8 +3,6 @@
 #include <iostream>
 #include <thread>
 
-#include <boost/asio.hpp>
-
 #include "client/tcp_client.hpp"
 #include "proto/messages.pb.h"
 #include "spdlog/spdlog.h"
@@ -29,9 +27,8 @@ int main(int argc, char** argv) {
   // Create a workload for each client.
   std::unordered_map<std::string, std::deque<Command>> workload;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  /*
   {
     Command c;
     c.set_client("client1");
@@ -69,10 +66,10 @@ int main(int argc, char** argv) {
     c.set_operation(Command_Operation_GET);
     workload["client2"].push_back(c);
   }
-  */
 
-  int num_clients = 4;
-  int requests_per_client = 2;
+  /*
+  int num_clients = 10;
+  int requests_per_client = 1;
   for (int i = 1; i <= num_clients; ++i) {
     for (int j = 1; j <= requests_per_client; ++j) {
       std::string client = "client" + std::to_string(i);
@@ -85,14 +82,10 @@ int main(int argc, char** argv) {
       workload[client].push_back(c);
     }
   }
+  */
 
-  boost::asio::io_context io_context;
-  boost::asio::ip::tcp::resolver r(io_context);
-  TcpClient client(io_context, client_name, workload);
-
-  client.Start(r.resolve("localhost", server_port));
-
-  io_context.run();
+  TcpClient client(workload);
+  client.Start("localhost", std::stoi(server_port));
 
   return 0;
 }

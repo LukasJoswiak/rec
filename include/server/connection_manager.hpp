@@ -24,7 +24,7 @@ class ConnectionManager {
   // Stops tracking a client connection.
   void RemoveClientConnection(std::shared_ptr<TcpConnection> connection);
 
-  // Starts tracking a server connection; starts the connection.
+  // Starts tracking a server connection.
   void AddServerConnection(std::shared_ptr<TcpConnection> connection);
 
   // Stops tracking a server connection.

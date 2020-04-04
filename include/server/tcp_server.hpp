@@ -2,61 +2,37 @@
 #define INCLUDE_SERVER_TCP_SERVER_HPP_
 
 #include <memory>
-#include <string>
 
-#include <boost/asio.hpp>
-
+#include "spdlog/spdlog.h"
 #include "server/connection_manager.hpp"
-#include "server/tcp_connection.hpp"
+#include "server/tcp_socket.hpp"
 
-// TCP server implementation, handling incoming and outgoing connections.
 class TcpServer {
  public:
-  // Initialize a new TcpServer which listens for incoming connections on the
-  // given port. Must call Run to start the server.
-  TcpServer(std::string&& name, uint16_t port);
-  TcpServer(const TcpServer& other) = delete;
-  TcpServer& operator=(const TcpServer& other) = delete;
+  explicit TcpServer(std::string&& name, uint16_t port);
 
-  // Attempt to connect to other servers and start listening for connections.
-  void Run();
-
-  // Stop the server and shut down all connections.
-  void Stop();
+  // Runs the server. Attempts to connect to other servers, then begins
+  // listening for incoming connections.
+  bool Run();
 
  private:
-  // Initiate a connection asynchronously.
-  void StartConnect(
-      boost::asio::ip::tcp::resolver::results_type endpoints,
-      boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter,
-      std::string& endpoint_name);
+  // Converts the given endpoint into a sockaddr_storage struct. `ret_addr` and
+  // `ret_addrlen` are return parameters which will be populated on success. 
+  // Returns true on success.
+  bool LookupName(std::string& host, unsigned short port,
+      struct sockaddr_storage* ret_addr, std::size_t* ret_addrlen);
 
-  // Handles the results of an asynchronous connection initiation attempt.
-  void HandleConnect(
-      const boost::system::error_code& error,
-      std::shared_ptr<TcpConnection> connection,
-      boost::asio::ip::tcp::resolver::results_type endpoints,
-      boost::asio::ip::tcp::resolver::results_type::iterator endpoint_iter,
-      std::string& endpoint_name);
-
-  // Listens for new connections.
-  void StartAccept();
-
-  // Handles newly established connection and instructs server to again listen
-  // for incoming connection attempts.
-  void HandleAccept(std::shared_ptr<TcpConnection> new_connection,
-                    const boost::system::error_code& error);
-
-  // Handles system shutdown.
-  void HandleStop(boost::system::error_code error, int signal_number);
-
-  boost::asio::io_context io_context_;
-  boost::asio::signal_set signals_;
-  boost::asio::ip::tcp::acceptor acceptor_;
-  boost::asio::ip::tcp::resolver resolver_;
+  // Creates a socket to the given address and connects to it. Sets newly
+  // created file descriptor on `ret_fd` return parameter. Returns true on
+  // success.
+  bool Connect(const struct sockaddr_storage& addr, const std::size_t& addrlen,
+      int* ret_fd);
 
   std::string name_;
-  ConnectionManager connection_manager_;
+  TcpSocket ts_;
+  std::shared_ptr<ConnectionManager> connection_manager_;
+
+  std::shared_ptr<spdlog::logger> logger_;
 };
 
 #endif  // INCLUDE_SERVER_TCP_SERVER_HPP_
