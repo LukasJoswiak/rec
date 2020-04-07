@@ -154,29 +154,21 @@ void TcpClient::Read(int fd) {
       Response r;
       message.message().UnpackTo(&r);
 
-      {
-        std::lock_guard<std::mutex> lock(mutex_);
-        auto response_time =
-            std::chrono::duration_cast<std::chrono::microseconds>(
-                now - send_time_[r.client()]);
+      auto response_time =
+          std::chrono::duration_cast<std::chrono::microseconds>(
+              now - send_time_[r.client()]);
 
-        // if (num_received % 1000 == 0) {
-          logger_->debug("Value ({}:{}, {} microseconds): {}", r.client(),
-              r.sequence_number(), response_time.count(), r.value());
-        // }
-      }
+      logger_->debug("Value ({}:{}, {} microseconds): {}", r.client(),
+          r.sequence_number(), response_time.count(), r.value());
 
-      // logger_->trace("read response ({} bytes): ", r.ByteSize(), r.DebugString());
-      /*
       ++num_requests_;
       // Update average latency.
       average_latency_ -= average_latency_ / num_requests_;
       average_latency_ += (double) response_time.count() / num_requests_;
-      */
 
       if (auto serialized = GetNextMessage(r.client())) {
         out_queue_.push(std::make_pair(*serialized, r.client()));
-      } else if (num_received == 10) {
+      } else if (num_received == 10000) {
         auto elapsed_time = std::chrono::steady_clock::now() - start_time;
         auto elapsed_time_millis =
             std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time);
@@ -185,6 +177,7 @@ void TcpClient::Read(int fd) {
 
         int throughput = static_cast<double>(num_received) /
             elapsed_time_millis.count() * 1000;
+        logger_->info("average latency: {} microseconds", average_latency_);
         logger_->info("throughput: {} req/s", throughput);
       }
     }
@@ -224,10 +217,7 @@ void TcpClient::Write(int fd) {
 
     std::string& message = std::get<0>(pair);
     std::string& client = std::get<1>(pair);
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      send_time_[client] = std::chrono::steady_clock::now();
-    }
+    send_time_[client] = std::chrono::steady_clock::now();
     Write(fd, message);
     ++num_sent;
 

@@ -29,6 +29,7 @@ int main(int argc, char** argv) {
 
   // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
+  /*
   {
     Command c;
     c.set_client("client1");
@@ -66,10 +67,10 @@ int main(int argc, char** argv) {
     c.set_operation(Command_Operation_GET);
     workload["client2"].push_back(c);
   }
+  */
 
-  /*
-  int num_clients = 10;
-  int requests_per_client = 1;
+  int num_clients = 100;
+  int requests_per_client = 100;
   for (int i = 1; i <= num_clients; ++i) {
     for (int j = 1; j <= requests_per_client; ++j) {
       std::string client = "client" + std::to_string(i);
@@ -82,7 +83,6 @@ int main(int argc, char** argv) {
       workload[client].push_back(c);
     }
   }
-  */
 
   TcpClient client(workload);
   client.Start("localhost", std::stoi(server_port));

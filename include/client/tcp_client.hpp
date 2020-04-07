@@ -77,8 +77,10 @@ class TcpClient {
   // Map of client address -> deque of commands the client wants to run.
   std::unordered_map<std::string, std::deque<Command>> workload_;
 
-  // TODO: Remove!
-  std::mutex mutex_;
+  // Statistics.
+  int num_requests_;
+  // Average latency (microseconds);
+  double average_latency_;
 
   std::shared_ptr<spdlog::logger> logger_;
 };
