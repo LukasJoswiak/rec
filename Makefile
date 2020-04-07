@@ -80,7 +80,7 @@ $(BUILDDIR)/%.o: $(GENDIR)/proto/%.pb.cc
 # Build the benchmark suite.
 .PHONY: benchmark
 benchmark: | libs dirs
-	$(MAKE) -C benchmark/
+	$(MAKE) -C benchmark/erasure/
 
 # Download required dependencies.
 libs:

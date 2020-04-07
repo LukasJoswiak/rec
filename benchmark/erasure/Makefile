@@ -1,24 +1,23 @@
-# Invoke this Makefile from the top level Makefile.
-
 CC = clang
 CXX = clang++
 
 CFLAGS = -Wall -g -std=c11
 CXXFLAGS = -Wall -g -march=native -std=c++17
 
-SRCDIR = ../src
-LIBDIR = ../lib
-BUILDDIR = ../build
-BINDIR = ../bin
+SRCDIR = ../../src
+LIBDIR = ../../lib
+BUILDDIR = ../../build
+BINDIR = ../../bin
 
 
+# Invoke this Makefile from the top level Makefile.
 all: $(BINDIR)/benchmark
 
 $(BINDIR)/benchmark: $(BUILDDIR)/libecwrapper.a $(BUILDDIR)/cm256.o $(BUILDDIR)/gf256.o $(BUILDDIR)/benchmark.o
 	# Ignore first dependency when linking object files.
 	$(CXX) $(filter-out $<,$^) -o $@ -L$(BUILDDIR) -lecwrapper
 
-$(BUILDDIR)/benchmark.o: ../benchmark/benchmark.cpp
+$(BUILDDIR)/benchmark.o: ../../benchmark/erasure/benchmark.cpp
 	$(CXX) $(CXXFLAGS) -I $(SRCDIR) -c -o $@ $<
 
 # Generate the library archive from the object file.

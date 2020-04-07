@@ -2,7 +2,7 @@
 #include <iostream>
 #include <random>
 
-#include "../lib/cm256/cm256.h"
+#include "../../lib/cm256/cm256.h"
 
 extern "C" {
   #include "ec_wrapper.h"
