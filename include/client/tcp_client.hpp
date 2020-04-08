@@ -21,7 +21,8 @@
 class TcpClient {
  public:
   explicit TcpClient(
-      std::unordered_map<std::string, std::deque<Command>>& workload);
+      std::unordered_map<std::string, std::deque<Command>>& workload,
+      std::size_t workload_size);
 
   // Attempts to open a connection to the host on the given port. Queues initial
   // client messages and spawn reader and writer threads.
@@ -78,6 +79,9 @@ class TcpClient {
   std::unordered_map<std::string, std::deque<Command>> workload_;
 
   // Statistics.
+  // Number of requests in the workload.
+  std::size_t workload_size_;
+  // Number of requests read in.
   int num_requests_;
   // Average latency (microseconds);
   double average_latency_;

@@ -24,6 +24,8 @@ int main(int argc, char** argv) {
 
   std::string client_name = argv[1];
   std::string server_port = argv[2];
+  int num_clients = std::stoi(argv[3]);
+  int requests_per_client = std::stoi(argv[4]);
   // Create a workload for each client.
   std::unordered_map<std::string, std::deque<Command>> workload;
 
@@ -69,8 +71,6 @@ int main(int argc, char** argv) {
   }
   */
 
-  int num_clients = 100;
-  int requests_per_client = 100;
   for (int i = 1; i <= num_clients; ++i) {
     for (int j = 1; j <= requests_per_client; ++j) {
       std::string client = "client" + std::to_string(i);
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  TcpClient client(workload);
+  TcpClient client(workload, num_clients * requests_per_client);
   client.Start("localhost", std::stoi(server_port));
 
   return 0;

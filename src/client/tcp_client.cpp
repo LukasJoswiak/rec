@@ -7,8 +7,10 @@
 #include <thread>
 
 TcpClient::TcpClient(
-    std::unordered_map<std::string, std::deque<Command>>& workload)
-    : workload_(workload) {
+    std::unordered_map<std::string, std::deque<Command>>& workload,
+    std::size_t workload_size)
+    : workload_(workload),
+      workload_size_(workload_size) {
   logger_ = spdlog::get("client");
 }
 
@@ -168,7 +170,7 @@ void TcpClient::Read(int fd) {
 
       if (auto serialized = GetNextMessage(r.client())) {
         out_queue_.push(std::make_pair(*serialized, r.client()));
-      } else if (num_received == 10000) {
+      } else if (num_received == workload_size_) {
         auto elapsed_time = std::chrono::steady_clock::now() - start_time;
         auto elapsed_time_millis =
             std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time);
@@ -179,6 +181,8 @@ void TcpClient::Read(int fd) {
             elapsed_time_millis.count() * 1000;
         logger_->info("average latency: {} microseconds", average_latency_);
         logger_->info("throughput: {} req/s", throughput);
+
+        std::exit(0);
       }
     }
   }
