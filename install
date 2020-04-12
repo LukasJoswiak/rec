@@ -35,7 +35,7 @@ if ! [ -d "$LIBDIR" ]; then
 fi
 
 # Install cm256
-if ! [ -d "$LIBDIR/spdlog" ]; then
+if ! [ -d "$LIBDIR/cm256" ]; then
     echo "Installing cm256..."
     git clone https://github.com/catid/cm256.git $LIBDIR/cm256
 fi

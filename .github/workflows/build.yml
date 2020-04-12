@@ -1,4 +1,4 @@
-name: Build
+name: build
 on: [push]
 jobs:
    build-ubuntu:
@@ -6,13 +6,13 @@ jobs:
      steps:
        - uses: actions/checkout@v2
 
-       - name: cache protoc
+       - name: Cache protoc
          uses: actions/cache@v1
          with:
            path: protobuf
            key: ${{ runner.os }}-protoc-cache
 
-       - name: install dependencies
+       - name: Install dependencies
          run: ./install
 
        - name: make
