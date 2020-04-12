@@ -1,0 +1,19 @@
+name: Build
+on: [push]
+jobs:
+   build-ubuntu:
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v2
+
+       - name: cache protoc
+         uses: actions/cache@v1
+         with:
+           path: protobuf
+           key: ${{ runner.os }}-protoc-cache
+
+       - name: install dependencies
+         run: ./install
+
+       - name: make
+         run: make

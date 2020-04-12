@@ -6,9 +6,7 @@ build/
 
 # Libraries
 *.a
-lib/*
-!lib/README.md
-!lib/Makefile
+lib/
 
 # Executables
 *.out

@@ -1,0 +1,49 @@
+# Installs required dependencies
+
+LIBDIR="lib"
+
+if [ -x "$(command -v apt-get)" ]; then
+    sudo apt-get update -y
+    sudo apt-get install -y autoconf automake libtool curl make g++ clang unzip
+fi
+
+# Install protoc
+if ! [ -x "$(command -v protoc)" ]; then
+    echo "Installing protoc..."
+    # Check if protoc has already been built from source
+    if ! [ -f "protobuf/src/protoc" ]; then
+        git clone https://github.com/protocolbuffers/protobuf.git
+        cd protobuf
+        git submodule update --init --recursive
+        # See https://github.com/protocolbuffers/protobuf/issues/149
+        ./autogen.sh
+        ./autogen.sh
+
+        ./configure
+        make
+        make check
+    else
+        cd protobuf
+    fi
+    sudo make install
+    sudo ldconfig
+    cd ..
+fi
+
+if ! [ -d "$LIBDIR" ]; then
+    mkdir $LIBDIR
+fi
+
+# Install cm256
+if ! [ -d "$LIBDIR/spdlog" ]; then
+    echo "Installing cm256..."
+    git clone https://github.com/catid/cm256.git $LIBDIR/cm256
+fi
+
+# Install spdlog
+if ! [ -d "$LIBDIR/spdlog" ]; then
+    echo "Installing spdlog..."
+    git clone --verbose https://github.com/gabime/spdlog.git /tmp/spdlog
+    mv -v /tmp/spdlog/include/spdlog $LIBDIR/
+    rm -rf /tmp/spdlog
+fi
