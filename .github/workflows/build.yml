@@ -6,11 +6,11 @@ jobs:
      steps:
        - uses: actions/checkout@v2
 
-       - name: Cache protoc
+       - name: Cache protobuf library
          uses: actions/cache@v1
          with:
            path: protobuf
-           key: ${{ runner.os }}-protoc-cache
+           key: ${{ runner.os }}-protobuf
 
        - name: Install dependencies
          run: ./install

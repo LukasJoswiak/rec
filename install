@@ -7,11 +7,12 @@ if [ -x "$(command -v apt-get)" ]; then
     sudo apt-get install -y autoconf automake libtool curl make g++ clang unzip
 fi
 
-# Install protoc
+# Build and install protobuf
 if ! [ -x "$(command -v protoc)" ]; then
-    echo "Installing protoc..."
+    echo "Installing protobuf..."
     # Check if protoc has already been built from source
     if ! [ -f "protobuf/src/protoc" ]; then
+        # If not, clone and build the library
         git clone https://github.com/protocolbuffers/protobuf.git
         cd protobuf
         git submodule update --init --recursive
@@ -25,6 +26,7 @@ if ! [ -x "$(command -v protoc)" ]; then
     else
         cd protobuf
     fi
+    # Install the protoc compiler and supporting files
     sudo make install
     sudo ldconfig
     cd ..
