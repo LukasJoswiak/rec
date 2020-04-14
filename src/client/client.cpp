@@ -8,13 +8,20 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-namespace {
-const int kValueLength = 500;
-}
+// From https://stackoverflow.com/a/12468109/986991
+std::string RandomString(size_t length) {
+  auto randchar = []() -> char {
+    const char charset[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    const size_t max_index = sizeof(charset) - 1;
+    return charset[rand() % max_index];
+  };
 
-std::string GenerateValue() {
-  // TODO: Generate random sequences
-  return std::string(kValueLength, 'a');
+  std::string str(length, 0);
+  std::generate_n(str.begin(), length, randchar);
+  return str;
 }
 
 int main(int argc, char** argv) {
@@ -78,7 +85,7 @@ int main(int argc, char** argv) {
       c.set_client(client);
       c.set_sequence_number(j);
       c.set_key("foo" + std::to_string(j));
-      c.set_value("barbarbarbar");
+      c.set_value(RandomString(10000));
       c.set_operation(Command_Operation_PUT);
       workload[client].push_back(c);
     }
