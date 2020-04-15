@@ -26,7 +26,7 @@ Commander::~Commander() {
 
 void Commander::Run() {
   // Coded data shares.
-  std::array<std::string, Code::kTotalBlocks> shares;
+  std::array<std::string*, Code::kTotalBlocks> shares;
 
   // Operations with data should be split into chunks and split between servers.
   if (command_.operation() != Command_Operation_GET) {
@@ -42,14 +42,13 @@ void Commander::Run() {
 
     // Copy original blocks.
     for (int i = 0; i < Code::kOriginalBlocks; ++i) {
-      shares[i] = std::string((char*) blocks[i].Block, block_size);
+      shares[i] = new std::string((char*) blocks[i].Block, block_size);
     }
 
     // Copy redundant blocks.
     for (int i = 0; i < Code::kRedundantBlocks; ++i) {
-      shares[Code::kOriginalBlocks + i] = std::string((char*) recovery_blocks,
-                                                      i * block_size,
-                                                      block_size);
+      shares[Code::kOriginalBlocks + i] =
+          new std::string((char*) recovery_blocks + i * block_size, block_size);
     }
 
     delete recovery_blocks;
@@ -59,11 +58,11 @@ void Commander::Run() {
   for (int i = 0; i < kServers.size(); ++i) {
     std::string server_name = std::get<0>(kServers[i]);
 
-    std::string data = shares[i];
+    std::string* data = shares[i];
     auto command = new Command(command_);
     // Not all requests have associated data (only PUTs).
-    if (data.size() > 0) {
-      command->set_value(data);
+    if (data->size() > 0) {
+      command->set_allocated_value(data);
       command->set_block_index(i);
     }
 
