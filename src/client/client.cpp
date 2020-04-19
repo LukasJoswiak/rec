@@ -85,14 +85,14 @@ int main(int argc, char** argv) {
       c.set_client(client);
       c.set_sequence_number(j);
       c.set_key("foo" + std::to_string(j));
-      c.set_value(RandomString(10000));
+      c.set_value(RandomString(100));
       c.set_operation(Command_Operation_PUT);
       workload[client].push_back(c);
     }
   }
 
   TcpClient client(workload, num_clients * requests_per_client);
-  client.Start("localhost", std::stoi(server_port));
+  client.Start(client_name, std::stoi(server_port));
 
   return 0;
 }

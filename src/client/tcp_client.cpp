@@ -14,7 +14,7 @@ TcpClient::TcpClient(
   logger_ = spdlog::get("client");
 }
 
-void TcpClient::Start(std::string&& host, unsigned short port) {
+void TcpClient::Start(std::string& host, unsigned short port) {
   struct sockaddr_storage addr;
   std::size_t addrlen;
   if (!LookupName(host, port, &addr, &addrlen)) {

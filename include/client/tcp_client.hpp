@@ -26,7 +26,7 @@ class TcpClient {
 
   // Attempts to open a connection to the host on the given port. Queues initial
   // client messages and spawn reader and writer threads.
-  void Start(std::string&& host, unsigned short port);
+  void Start(std::string& host, unsigned short port);
 
  private:
   static const int kHeaderSize = 4;
