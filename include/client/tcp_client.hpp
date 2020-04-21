@@ -29,7 +29,7 @@ class TcpClient {
   void Start(std::string& host, unsigned short port);
 
  private:
-  static const int kHeaderSize = 4;
+  static const int kHeaderSize = 8;
 
   // Closes the connection to the remote host.
   void Close(int socket_fd);

@@ -39,7 +39,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   }
 
  private:
-  static const int kHeaderSize = 4;
+  static const int kHeaderSize = 8;
 
   // Continuously reads messages from the file descriptor for this connection.
   // The first kHeaderSize bytes of each message must be the size of the

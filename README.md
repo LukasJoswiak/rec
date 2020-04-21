@@ -8,7 +8,7 @@ rec is a replicated key-value store which uses erasure coding to reduce network 
 
 Run `./install` to install required dependencies. Run `make` to build the project once dependencies have been installed.
 
-The install script checks for `protoc`, the protobuf compiler. If it is installed, the script will not build protobufs from source. Make sure the protobuf runtime library exists in your path in addition to the `protoc` compiler.
+The install script checks for `protoc`, the protobuf compiler. If it is installed, the script will not build protobuf from source. Make sure the protobuf runtime library exists in your PATH in addition to the `protoc` compiler.
 
 ## Run
 
