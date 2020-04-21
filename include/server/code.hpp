@@ -5,6 +5,11 @@
 
 class Code {
  public:
+  // Whether erasure coding should be enabled. Enabling erasure coding splits
+  // replicated data values into chunks as defined by the constants below, and
+  // will reduce network traffic and disk storage at the cost of fewer redundant
+  // servers.
+  static constexpr bool coding_enabled = false;
   // Number of original blocks to split the data into. kOriginalBlocks +
   // kRedundantBlocks should be < 256.
   static constexpr int kOriginalBlocks = 3;

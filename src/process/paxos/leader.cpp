@@ -249,69 +249,97 @@ bool Leader::IsLeader() {
 
 void Leader::RecoverValues(
     const google::protobuf::RepeatedPtrField<PValue>& accepted_pvalues) {
-  // Map of slot number -> map of ballot number -> vector of pvalues received
-  // from acceptors for the slot and ballot.
-  std::unordered_map<int,
-      std::unordered_map<BallotNumber, std::vector<PValue>, BallotHash,
-                         BallotEqualTo>> pvalues;
+  if (Code::coding_enabled) {
+    // Recover erasure coded values by building up enough chunks to recover the
+    // original data.
 
-  // TODO: Don't recover value if it has already been learned.
+    // Map of slot number -> map of ballot number -> vector of pvalues received
+    // from acceptors for the slot and ballot.
+    std::unordered_map<int,
+        std::unordered_map<BallotNumber, std::vector<PValue>, BallotHash,
+                           BallotEqualTo>> pvalues;
 
-  // Need to determine if this server received enough responses for each slot
-  // to be able to reconstruct the original data value, in which case it can
-  // be reproposed. Otherwise, a no-op will be proposed for the slot.
-  for (const auto& pvalue : accepted_pvalues) {
-    int slot_number = pvalue.slot_number();
-    const BallotNumber& ballot_number = pvalue.ballot_number();
-    if (pvalues.find(slot_number) == pvalues.end()) {
-      pvalues[slot_number] =
-          std::unordered_map<BallotNumber, std::vector<PValue>, BallotHash,
-                             BallotEqualTo>();
-    }
+    // TODO: Don't recover value if it has already been learned.
 
-    auto& slot_pvalues = pvalues[slot_number];
-    if (slot_pvalues.find(ballot_number) == slot_pvalues.end()) {
-      slot_pvalues[ballot_number] = std::vector<PValue>();
-    }
-
-    auto& slot_ballot_pvalues = slot_pvalues[ballot_number];
-    slot_ballot_pvalues.push_back(pvalue);
-
-    if (slot_ballot_pvalues.size() == Code::kOriginalBlocks) {
-      // Received enough responses to regenerate data for this slot.
-      logger_->trace("regenerating command for slot {}", slot_number);
-
-      int block_size = slot_ballot_pvalues[0].command().value().size();
-
-      // Recover original value from original and redundant shares received
-      // from acceptors.
-      cm256_block blocks[Code::kOriginalBlocks];
-      int i = 0;
-      for (const auto& pvalue : slot_ballot_pvalues) {
-        // Make sure size of each block is the same.
-        assert(pvalue.command().value().size() == block_size);
-
-        blocks[i].Index = pvalue.command().block_index();
-        blocks[i].Block = (unsigned char*) pvalue.command().value().data();
-        ++i;
-      }
-      bool success = Code::Decode(blocks, block_size);
-      assert(success == true);
-
-      // TODO: Might need to store this on the heap if values become large
-      // Create recovered string of correct size, then fill it with data from
-      // each block. Blocks might be returned out of order.
-      std::string recovered_value(block_size * Code::kOriginalBlocks, '0');
-      for (int i = 0; i < Code::kOriginalBlocks; ++i) {
-        int index = blocks[i].Index;
-        recovered_value.replace(index * block_size, block_size, std::string((char*) blocks[i].Block));
+    // Need to determine if this server received enough responses for each slot
+    // to be able to reconstruct the original data value, in which case it can
+    // be reproposed. Otherwise, a no-op will be proposed for the slot.
+    for (const auto& pvalue : accepted_pvalues) {
+      int slot_number = pvalue.slot_number();
+      const BallotNumber& ballot_number = pvalue.ballot_number();
+      if (pvalues.find(slot_number) == pvalues.end()) {
+        pvalues[slot_number] =
+            std::unordered_map<BallotNumber, std::vector<PValue>, BallotHash,
+                               BallotEqualTo>();
       }
 
-      // TODO: Might need to store this on the heap
-      Command command = Command(slot_ballot_pvalues[0].command());
-      command.set_value(recovered_value);
-      command.clear_block_index();
-      proposals_[slot_number] = command;
+      auto& slot_pvalues = pvalues[slot_number];
+      if (slot_pvalues.find(ballot_number) == slot_pvalues.end()) {
+        slot_pvalues[ballot_number] = std::vector<PValue>();
+      }
+
+      auto& slot_ballot_pvalues = slot_pvalues[ballot_number];
+      slot_ballot_pvalues.push_back(pvalue);
+
+      if (slot_ballot_pvalues.size() == Code::kOriginalBlocks) {
+        // Received enough responses to regenerate data for this slot.
+        logger_->trace("regenerating command for slot {}", slot_number);
+
+        int block_size = slot_ballot_pvalues[0].command().value().size();
+
+        // Recover original value from original and redundant shares received
+        // from acceptors.
+        cm256_block blocks[Code::kOriginalBlocks];
+        int i = 0;
+        for (const auto& pvalue : slot_ballot_pvalues) {
+          // Make sure size of each block is the same.
+          assert(pvalue.command().value().size() == block_size);
+
+          blocks[i].Index = pvalue.command().block_index();
+          blocks[i].Block = (unsigned char*) pvalue.command().value().data();
+          ++i;
+        }
+        bool success = Code::Decode(blocks, block_size);
+        assert(success == true);
+
+        // TODO: Might need to store this on the heap if values become large
+        // Create recovered string of correct size, then fill it with data from
+        // each block. Blocks might be returned out of order.
+        std::string recovered_value(block_size * Code::kOriginalBlocks, '0');
+        for (int i = 0; i < Code::kOriginalBlocks; ++i) {
+          int index = blocks[i].Index;
+          recovered_value.replace(index * block_size, block_size, std::string((char*) blocks[i].Block));
+        }
+
+        // TODO: Might need to store this on the heap
+        Command command = Command(slot_ballot_pvalues[0].command());
+        command.set_value(recovered_value);
+        command.clear_block_index();
+        proposals_[slot_number] = command;
+      }
+    }
+  } else {
+    // Recover non erasure coded values by selecting the command for each slot
+    // with the highest ballot.
+
+    // Map of slot number -> ballot number, used to keep track of the highest
+    // ballot seen for each slot.
+    std::unordered_map<int, BallotNumber> ballots;
+
+    for (const auto& pvalue : accepted_pvalues) {
+      int slot_number = pvalue.slot_number();
+      const BallotNumber& ballot_number = pvalue.ballot_number();
+
+      if (ballots.find(slot_number) != ballots.end()) {
+        if (CompareBallotNumbers(ballots[slot_number], ballot_number) <= 0) {
+          // If ballot number is less than one we've already seen, skip this
+          // pvalue.
+          continue;
+        }
+      }
+
+      ballots[slot_number] = ballot_number;
+      proposals_[slot_number] = pvalue.command();
     }
   }
 }

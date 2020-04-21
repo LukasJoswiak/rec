@@ -28,42 +28,46 @@ void Commander::Run() {
   // Coded data shares.
   std::array<std::string*, Code::kTotalBlocks> shares;
 
-  // Operations with data should be split into chunks and split between servers.
-  if (command_.operation() != Command_Operation_GET) {
-    int block_size;
-    cm256_block blocks[Code::kOriginalBlocks];
-    uint8_t* recovery_blocks;
-    if (!Code::Encode((unsigned int*) command_.value().data(),
-                      command_.value().size(), blocks,
-                      &recovery_blocks, &block_size)) {
-      logger_->error("encoding error, exiting...");
-      exit(1);
-    }
+  if (Code::coding_enabled) {
+    // Operations with data should be split into chunks and split between servers.
+    if (command_.operation() != Command_Operation_GET) {
+      int block_size;
+      cm256_block blocks[Code::kOriginalBlocks];
+      uint8_t* recovery_blocks;
+      if (!Code::Encode((unsigned int*) command_.value().data(),
+                        command_.value().size(), blocks,
+                        &recovery_blocks, &block_size)) {
+        logger_->error("encoding error, exiting...");
+        exit(1);
+      }
 
-    // Copy original blocks.
-    for (int i = 0; i < Code::kOriginalBlocks; ++i) {
-      shares[i] = new std::string((char*) blocks[i].Block, block_size);
-    }
+      // Copy original blocks.
+      for (int i = 0; i < Code::kOriginalBlocks; ++i) {
+        shares[i] = new std::string((char*) blocks[i].Block, block_size);
+      }
 
-    // Copy redundant blocks.
-    for (int i = 0; i < Code::kRedundantBlocks; ++i) {
-      shares[Code::kOriginalBlocks + i] =
-          new std::string((char*) recovery_blocks + i * block_size, block_size);
-    }
+      // Copy redundant blocks.
+      for (int i = 0; i < Code::kRedundantBlocks; ++i) {
+        shares[Code::kOriginalBlocks + i] =
+            new std::string((char*) recovery_blocks + i * block_size, block_size);
+      }
 
-    delete recovery_blocks;
+      delete recovery_blocks;
+    }
   }
 
   logger_->trace("broadcasting P2As for slot {}", slot_number_);
   for (int i = 0; i < kServers.size(); ++i) {
     std::string server_name = std::get<0>(kServers[i]);
 
-    std::string* data = shares[i];
     auto command = new Command(command_);
-    // Not all requests have associated data (only PUTs).
-    if (data->size() > 0) {
-      command->set_allocated_value(data);
-      command->set_block_index(i);
+    if (Code::coding_enabled) {
+      std::string* data = shares[i];
+      // Not all requests have associated data (only PUTs).
+      if (data->size() > 0) {
+        command->set_allocated_value(data);
+        command->set_block_index(i);
+      }
     }
 
     P2A p;

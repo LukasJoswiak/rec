@@ -5,8 +5,8 @@
 #include <unordered_set>
 #include <utility>
 
-#include "process/paxos/paxos_process.hpp"
 #include "proto/messages.pb.h"
+#include "process/paxos/paxos_process.hpp"
 
 namespace process {
 namespace paxos {

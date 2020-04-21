@@ -17,10 +17,18 @@ const std::array<std::pair<std::string, uint16_t>, 5> kServers = {
   std::make_pair("server5", 1115)
 };
 
+namespace {
 // With 5 nodes, data split into three original chunks and one tolerated
 // failure, quorum size will be 4.
 const int kToleratedFailures = 1;
 
-const int kQuorum = Code::kOriginalBlocks + kToleratedFailures;
+auto quorum_size = []() {
+  return Code::coding_enabled ?
+      Code::kOriginalBlocks + kToleratedFailures :
+      kServers.size() / 2 + 1;
+};
+}
+
+constexpr int kQuorum = quorum_size();
 
 #endif  // INCLUDE_SERVER_SERVERS_HPP_
