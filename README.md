@@ -34,7 +34,7 @@ Currently, the list of servers must be hardcoded in [servers.hpp](https://github
 # Terminal 4
 ./bin/rec server4 1114
 
-# Terminal 4
+# Terminal 5
 ./bin/client localhost 1114 1 100
 ```
 
