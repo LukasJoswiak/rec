@@ -301,7 +301,7 @@ void Leader::RecoverValues(
       // TODO: Might need to store this on the heap if values become large
       // Create recovered string of correct size, then fill it with data from
       // each block. Blocks might be returned out of order.
-      std::string recovered_value(4 * Code::kOriginalBlocks, '0');
+      std::string recovered_value(block_size * Code::kOriginalBlocks, '0');
       for (int i = 0; i < Code::kOriginalBlocks; ++i) {
         int index = blocks[i].Index;
         recovered_value.replace(index * block_size, block_size, std::string((char*) blocks[i].Block));
