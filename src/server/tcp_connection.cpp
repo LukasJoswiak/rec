@@ -56,12 +56,22 @@ void TcpConnection::Read() {
       break;
     }
 
-    char buf[data_size];
+    bool use_heap = data_size > 2048;
+    char* buf;
+    if (use_heap) {
+      buf = new char[data_size];
+    } else {
+      char tmp[2048];
+      buf = tmp;
+    }
     if (!Read(fd_, buf, data_size)) {
       break;
     }
     const std::string data(buf, data_size);
     ++num_received;
+    if (use_heap) {
+      delete[] buf;
+    }
 
     Message message;
     message.ParseFromString(data);

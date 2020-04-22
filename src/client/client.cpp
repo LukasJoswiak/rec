@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
       c.set_client(client);
       c.set_sequence_number(j);
       c.set_key("foo" + std::to_string(j));
-      c.set_value(RandomString(100050));
+      c.set_value(RandomString(10000050));
       c.set_operation(Command_Operation_PUT);
       workload[client].push_back(c);
     }
