@@ -28,7 +28,8 @@ std::optional<Response> Application::Execute(const Command& command) {
         result = store_.Get(command.key());
         break;
       case Command_Operation_PUT:
-        result = store_.Put(command.key(), command.value());
+        store_.Put(command.key(), command.value());
+        result = "";
         break;
       // APPEND not yet supported.
       default:

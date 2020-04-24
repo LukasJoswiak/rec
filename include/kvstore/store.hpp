@@ -15,7 +15,7 @@ class Store {
   Store();
 
   V Get(const K& key);
-  V Put(const K& key, const V& value);
+  void Put(const K& key, const V& value);
   V Append(const K& key, const V& value);
 
  private:
@@ -37,11 +37,10 @@ V Store<K, V>::Get(const K& key) {
 }
 
 template <class K, class V>
-V Store<K, V>::Put(const K& key, const V& value) {
+void Store<K, V>::Put(const K& key, const V& value) {
   logger_->trace("put {}", key);
 
   store_[key] = value;
-  return store_[key];
 }
 
 template <class K, class V>

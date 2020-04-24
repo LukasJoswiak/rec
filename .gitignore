@@ -15,6 +15,7 @@ bin/
 # Editor files
 *.swp
 *.swo
+Session.vim
 
 # Ctags
 tags
