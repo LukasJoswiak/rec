@@ -10,7 +10,8 @@ TcpClient::TcpClient(
     std::unordered_map<std::string, std::deque<Command>>& workload,
     std::size_t workload_size)
     : workload_(workload),
-      workload_size_(workload_size) {
+      workload_size_(workload_size),
+      average_latency_(0.0) {
   logger_ = spdlog::get("client");
 }
 
@@ -166,17 +167,17 @@ void TcpClient::Read(int fd) {
       Response r;
       message.message().UnpackTo(&r);
 
-      auto response_time =
-          std::chrono::duration_cast<std::chrono::microseconds>(
-              now - send_time_[r.client()]);
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto response_time =
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                now - send_time_[r.client()]);
 
-      logger_->debug("Value ({}:{}, {} microseconds): {}", r.client(),
-          r.sequence_number(), response_time.count(), r.value());
-
-      ++num_requests_;
-      // Update average latency.
-      average_latency_ -= average_latency_ / num_requests_;
-      average_latency_ += (double) response_time.count() / num_requests_;
+        ++num_requests_;
+        // Update average latency.
+        average_latency_ -= average_latency_ / num_requests_;
+        average_latency_ += (double) response_time.count() / num_requests_;
+      }
 
       if (auto serialized = GetNextMessage(r.client())) {
         out_queue_.push(std::make_pair(*serialized, r.client()));
@@ -231,7 +232,10 @@ void TcpClient::Write(int fd) {
 
     std::string& message = std::get<0>(pair);
     std::string& client = std::get<1>(pair);
-    send_time_[client] = std::chrono::steady_clock::now();
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      send_time_[client] = std::chrono::steady_clock::now();
+    }
     Write(fd, message);
     ++num_sent;
 

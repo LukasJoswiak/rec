@@ -83,8 +83,10 @@ class TcpClient {
   std::size_t workload_size_;
   // Number of requests read in.
   int num_requests_;
-  // Average latency (microseconds);
+  // Average latency (microseconds).
   double average_latency_;
+  // Mutex for thread safe data structure access.
+  std::mutex mutex_;
 
   std::shared_ptr<spdlog::logger> logger_;
 };
