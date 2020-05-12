@@ -23,7 +23,7 @@ namespace {
 const int kToleratedFailures = 1;
 
 auto quorum_size = []() {
-  return Code::coding_enabled ?
+  return Code::kCodingEnabled ?
       Code::kOriginalBlocks + kToleratedFailures :
       kServers.size() / 2 + 1;
 };

@@ -66,7 +66,7 @@ void Leader::HandleStatus(Status&& s, const std::string& from) {
   logger_->debug("received status message");
 
   std::string principal = PrincipalServer(s.live());
-  if (!IsLeader() && principal == address_ &&
+  if (!IsLeader() && address_ == principal &&
       s.live_size() >= kQuorum) {
     // This is the principal server among the alive servers. Increase ballot
     // number to be above current leader and attempt to become leader.
@@ -249,7 +249,7 @@ bool Leader::IsLeader() {
 
 void Leader::RecoverValues(
     const google::protobuf::RepeatedPtrField<PValue>& accepted_pvalues) {
-  if (Code::coding_enabled) {
+  if (Code::kCodingEnabled) {
     // Recover erasure coded values by building up enough chunks to recover the
     // original data.
 

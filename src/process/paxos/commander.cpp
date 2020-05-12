@@ -28,7 +28,7 @@ void Commander::Run() {
   // Coded data shares.
   std::array<std::string*, Code::kTotalBlocks> shares;
 
-  if (Code::coding_enabled) {
+  if (Code::kCodingEnabled) {
     // Operations with data should be split into chunks and split between servers.
     if (command_.operation() != Command_Operation_GET) {
       int block_size;
@@ -61,7 +61,7 @@ void Commander::Run() {
     std::string server_name = std::get<0>(kServers[i]);
 
     auto command = new Command(command_);
-    if (Code::coding_enabled) {
+    if (Code::kCodingEnabled) {
       std::string* data = shares[i];
       // Not all requests have associated data (only PUTs).
       if (data->size() > 0) {
