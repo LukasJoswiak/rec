@@ -21,6 +21,7 @@ int main(int argc, char** argv) {
     spdlog::stdout_color_mt("commander");
     spdlog::stdout_color_mt("socket");
     spdlog::stdout_color_mt("server");
+    spdlog::stdout_color_mt("manager");
     spdlog::stdout_color_mt("connection");
 
     int port = std::stoi(argv[2]);

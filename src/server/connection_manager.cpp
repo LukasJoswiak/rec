@@ -4,6 +4,7 @@
 ConnectionManager::ConnectionManager(std::string& server_name)
     : server_name_(server_name),
       environment_(*this, server_name) {
+  logger_ = spdlog::get("manager");
   environment_.Start();      
 }
 
@@ -125,8 +126,8 @@ void ConnectionManager::Handle(const Message& message,
     connection->set_endpoint(message.from());
     AddServerConnection(connection);
   } else if (message.type() == Message_MessageType_UNKNOWN) {
-    std::cout << "Unknown message type from " << message.from()
-              << ", dropping message..." << std::endl;
+    logger_->warn("unknown message type from {}, dropping message...",
+        message.from());
   } else {
     // If a request was received from a client, identify the connection as
     // a client connection and begin tracking it.

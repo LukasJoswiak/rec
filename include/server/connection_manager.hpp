@@ -6,6 +6,7 @@
 #include <string>
 
 #include "proto/messages.pb.h"
+#include "spdlog/spdlog.h"
 #include "server/environment.hpp"
 #include "server/tcp_connection.hpp"
 
@@ -57,6 +58,8 @@ class ConnectionManager {
 
   // Message handler used to pass messages to appropriate location.
   Environment environment_;
+
+  std::shared_ptr<spdlog::logger> logger_;
 };
 
 #endif  // INCLUDE_SERVER_CONNECTION_MANAGER_HPP_
