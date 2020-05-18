@@ -173,11 +173,15 @@ void Leader::HandleP2B(Message&& m, const std::string& from) {
   P2B p;
   m.message().UnpackTo(&p);
   int slot_number = p.slot_number();
-  assert(commander_message_queue_.find(slot_number) !=
-      commander_message_queue_.end());
 
-  auto commander_queue = commander_message_queue_.at(slot_number);
-  commander_queue->push(m);
+  // It's possible to receive late P2Bs after a decision has been received and
+  // the slot has been cleared. Make sure an active commander exists for the
+  // slot before handling it.
+  if (commander_message_queue_.find(slot_number) !=
+      commander_message_queue_.end()) {
+    auto commander_queue = commander_message_queue_.at(slot_number);
+    commander_queue->push(m);
+  }
 }
 
 void Leader::HandleDecision(Decision&& d, const std::string& from) {
