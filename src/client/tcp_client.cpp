@@ -11,6 +11,7 @@ TcpClient::TcpClient(
     std::size_t workload_size)
     : workload_(workload),
       workload_size_(workload_size),
+      num_requests_(0),
       average_latency_(0.0) {
   logger_ = spdlog::get("client");
 }
